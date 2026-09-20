@@ -1,0 +1,71 @@
+---
+const links = [
+	{ href: '#story', label: 'Our story' },
+	{ href: '#ceremonies', label: 'The ceremonies' },
+	{ href: '#travel', label: 'Travel' },
+	{ href: '#faq', label: 'FAQ' },
+]
+---
+
+<header class="sticky top-0 z-40 border-b border-deep/10 bg-paper/90 backdrop-blur">
+	<div class="relative mx-auto max-w-6xl px-6 py-3 md:px-10">
+		<div class="flex items-center justify-between gap-6">
+			<a
+				href="#top"
+				class="font-display text-lg text-deep"
+				aria-label="Meghna and Akash, back to top"
+			>
+				M<span class="text-brass">&amp;</span>A
+			</a>
+			<nav aria-label="Primary" class="hidden md:block">
+				<ul class="flex items-center gap-8 text-sm text-deep">
+					{
+						links.map((link) => (
+							<li>
+								<a
+									href={link.href}
+									class="decoration-brass decoration-2 underline-offset-4 hover:underline"
+								>
+									{link.label}
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</nav>
+
+			<details class="group md:hidden">
+				<summary
+					class="flex cursor-pointer list-none items-center gap-2 py-1 text-sm text-deep marker:content-none [&::-webkit-details-marker]:hidden"
+				>
+					Menu
+					<svg
+						viewBox="0 0 12 8"
+						class="h-2.5 w-3 fill-none stroke-brass stroke-2 transition-transform group-open:rotate-180"
+					>
+						<path d="M1 1.5 6 6.5 11 1.5" stroke-linecap="round" stroke-linejoin="round" />
+					</svg>
+				</summary>
+				<nav
+					aria-label="Primary"
+					class="absolute right-6 top-full mt-2 border border-deep/10 bg-paper px-5 py-4"
+				>
+					<ul class="space-y-2.5 text-sm text-deep">
+						{
+							links.map((link) => (
+								<li>
+									<a
+										href={link.href}
+										class="decoration-brass decoration-2 underline-offset-4 hover:underline"
+									>
+										{link.label}
+									</a>
+								</li>
+							))
+						}
+					</ul>
+				</nav>
+			</details>
+		</div>
+	</div>
+</header>

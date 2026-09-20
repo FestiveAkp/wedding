@@ -1,0 +1,47 @@
+---
+const faqs = [
+	{
+		q: 'Which ceremony should I attend?',
+		a: 'The thalikettu in Kerala is a small gathering of close family and relatives living in India. The wedding and sadya in Aurora is the larger celebration, and where we’re hoping to see family and friends from the U.S.',
+	},
+	{
+		q: 'Is the food vegetarian?',
+		a: 'The sadya in Aurora is a full traditional Kerala vegetarian feast, served on a banana leaf. We’ll share more on the Kerala ceremony’s meal as plans firm up.',
+	},
+	{
+		q: 'What should I wear?',
+		a: 'Details on dress for each ceremony are still being finalized — we’ll add guidance here well ahead of the date.',
+	},
+	{
+		q: 'Are children welcome?',
+		a: 'Yes, at both ceremonies. We’ll note this again on formal invitations.',
+	},
+]
+---
+
+<section id="faq" class="bg-paper-dim">
+	<div class="mx-auto max-w-3xl px-6 py-24 md:px-10 md:py-32">
+		<h2 class="font-display text-4xl text-deep md:text-5xl">Questions</h2>
+
+		<div class="mt-12 divide-y divide-deep/15 border-t border-deep/15">
+			{
+				faqs.map((item) => (
+					<details class="group py-6">
+						<summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-xl text-deep">
+							{item.q}
+							<span
+								class="shrink-0 text-2xl leading-none text-brass transition-transform group-open:rotate-45"
+								aria-hidden="true"
+							>
+								+
+							</span>
+						</summary>
+						<p class="mt-4 max-w-[60ch] text-ink/75 leading-relaxed">
+							{item.a}
+						</p>
+					</details>
+				))
+			}
+		</div>
+	</div>
+</section>

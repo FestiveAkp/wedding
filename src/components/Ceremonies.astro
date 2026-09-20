@@ -1,0 +1,40 @@
+---
+import CeremonySpread from './CeremonySpread.astro'
+---
+
+<section id="ceremonies" class="bg-paper-dim">
+	<div class="mx-auto max-w-6xl px-6 py-24 md:px-10 md:py-32">
+		<h2 class="max-w-xl font-display text-4xl text-deep md:text-5xl">
+			The ceremonies
+		</h2>
+		<p class="mt-4 max-w-[55ch] text-lg text-ink/70">
+			We&rsquo;re holding two separate celebrations, a few weeks apart,
+			on two different continents. Here&rsquo;s what each one looks
+			like.
+		</p>
+
+		<div class="mt-20 space-y-24">
+			<CeremonySpread
+				kicker="Kerala, India"
+				title="The thalikettu"
+				venue="A family temple in Kerala"
+				location="Exact temple to be shared closer to the date"
+				description="A traditional, intimate ceremony at Meghna's family temple, tying the thali to begin our married life together."
+				dateNote="To be announced, June 2027"
+				guestNote="Close family and relatives living in India"
+				accent="brass"
+			/>
+			<CeremonySpread
+				kicker="Aurora, Illinois"
+				title="Wedding ceremony & sadya"
+				venue="Sri Venkateswara Swami (Balaji) Temple"
+				location="Aurora, Illinois"
+				description="Our wedding ceremony, followed by a sadya — a traditional Kerala feast served on a banana leaf — for family and friends joining us from around the U.S."
+				dateNote="To be announced, June 2027"
+				guestNote="Family and friends from the U.S."
+				accent="rose"
+				reverse
+			/>
+		</div>
+	</div>
+</section>

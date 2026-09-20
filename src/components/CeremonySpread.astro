@@ -1,0 +1,63 @@
+---
+import TempleMark from './TempleMark.astro'
+
+interface Props {
+	kicker: string
+	title: string
+	venue: string
+	location: string
+	dateNote: string
+	guestNote: string
+	description: string
+	accent: 'brass' | 'rose'
+	reverse?: boolean
+}
+
+const {
+	kicker,
+	title,
+	venue,
+	location,
+	dateNote,
+	guestNote,
+	description,
+	accent,
+	reverse = false,
+} = Astro.props
+
+const accentText = accent === 'brass' ? 'text-brass' : 'text-rose'
+const accentBorder = accent === 'brass' ? 'border-brass' : 'border-rose'
+const plateBg = accent === 'brass' ? 'bg-deep-dark' : 'bg-deep-light'
+---
+
+<div class="grid grid-cols-1 items-center gap-10 md:grid-cols-12 md:gap-8">
+	<div
+		class={`flex aspect-[4/3] items-center justify-center rounded-sm md:col-span-5 ${plateBg} ${reverse ? 'md:order-2' : ''}`}
+	>
+		<TempleMark class={`h-40 w-40 ${accentText}`} />
+	</div>
+
+	<div class={`md:col-span-6 ${reverse ? 'md:order-1' : ''}`}>
+		<p class={`text-sm font-medium ${accentText}`}>{kicker}</p>
+		<h3 class="mt-3 font-display text-3xl text-deep md:text-4xl">
+			{title}
+		</h3>
+		<p class="mt-2 text-lg text-ink/70">{venue}</p>
+		<p class="text-ink/70">{location}</p>
+
+		<p class={`mt-6 border-l-2 pl-4 text-ink/80 ${accentBorder}`}>
+			{description}
+		</p>
+
+		<dl class="mt-8 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+			<div>
+				<dt class="text-ink/50">Date</dt>
+				<dd class="mt-1 text-ink/85">{dateNote}</dd>
+			</div>
+			<div>
+				<dt class="text-ink/50">Who&rsquo;s there</dt>
+				<dd class="mt-1 text-ink/85">{guestNote}</dd>
+			</div>
+		</dl>
+	</div>
+</div>
