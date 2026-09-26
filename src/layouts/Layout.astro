@@ -4,12 +4,17 @@ import '../styles/global.css'
 interface Props {
 	title?: string
 	description?: string
+	image?: string
 }
 
 const {
-	title = 'Meghna & Akash — June 2027',
-	description = 'Two ceremonies, two homes: a thalikettu with sadya in Kerala and a wedding celebration with Indian lunch in Aurora, Illinois.',
+	title = "Meghna & Akash's Wedding",
+	description = 'Two ceremonies, two homes — June 2027',
+	image,
 } = Astro.props
+
+const url = new URL(Astro.url.pathname, Astro.site)
+const imageUrl = image && new URL(image, Astro.site)
 ---
 
 <!doctype html>
@@ -22,6 +27,15 @@ const {
 		<meta name="generator" content={Astro.generator} />
 		<meta name="description" content={description} />
 		<title>{title}</title>
+		<link rel="canonical" href={url} />
+
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="Meghna & Akash" />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={url} />
+		{imageUrl && <meta property="og:image" content={imageUrl} />}
+		<meta name="twitter:card" content={imageUrl ? 'summary_large_image' : 'summary'} />
 
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
