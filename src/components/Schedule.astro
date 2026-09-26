@@ -1,0 +1,52 @@
+---
+const locations = [
+	{
+		place: 'Kerala, India',
+		accent: 'brass',
+		events: [
+			{ day: 'Day one', name: 'Mehndi night', detail: 'Mehndi application and music the evening before the ceremony.' },
+			{ day: 'Day two', name: 'Thalikettu ceremony', detail: 'Temple ceremony followed by a sadya feast.' },
+		],
+	},
+	{
+		place: 'Aurora, Illinois',
+		accent: 'rose',
+		events: [
+			{ day: 'Day one', name: 'Mehndi night', detail: 'Mehndi application and music the evening before the wedding.' },
+			{ day: 'Day two', name: 'Wedding ceremony', detail: 'Ceremony followed by an Indian lunch.' },
+		],
+	},
+]
+
+const accentText = (accent: string) => (accent === 'brass' ? 'text-brass' : 'text-rose')
+const accentBorder = (accent: string) => (accent === 'brass' ? 'border-brass' : 'border-rose')
+---
+
+<section id="schedule" class="mx-auto max-w-6xl px-6 py-24 md:px-10 md:py-32">
+	<h2 class="font-display text-4xl text-deep md:text-5xl">Schedule</h2>
+	<p class="mt-4 max-w-[55ch] text-lg text-ink/70">
+		Exact dates and times are still to come. For now, here&rsquo;s the shape of each
+		celebration.
+	</p>
+
+	<div class="mt-14 grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-16">
+		{
+			locations.map((loc) => (
+				<div>
+					<h3 class={`font-display text-2xl text-deep ${accentText(loc.accent)}`}>{loc.place}</h3>
+					<ol class="mt-6 space-y-6">
+						{loc.events.map((event) => (
+							<li class={`border-l-2 pl-4 ${accentBorder(loc.accent)}`}>
+								<p class="text-sm font-medium uppercase tracking-widest text-ink/50">
+									{event.day}
+								</p>
+								<p class="mt-1 font-display text-xl text-deep">{event.name}</p>
+								<p class="mt-1 text-ink/75 leading-relaxed">{event.detail}</p>
+							</li>
+						))}
+					</ol>
+				</div>
+			))
+		}
+	</div>
+</section>

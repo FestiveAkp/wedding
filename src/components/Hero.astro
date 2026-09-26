@@ -23,26 +23,29 @@ const links = [
 
 	<div class="relative flex min-h-svh flex-col p-10 md:p-14">
 		<div class="flex items-start justify-between gap-8">
-			<div class="max-w-md">
-				<p class="text-sm text-paper/80">The wedding of</p>
+			<div class="max-w-md md:max-w-2xl">
+				<p class="text-sm uppercase tracking-widest text-paper/80 md:text-lg">The wedding of</p>
 				<h1
-					class="mt-1 font-display text-[clamp(2.75rem,8vw,5.5rem)] font-light leading-[0.95] text-paper"
+					class="mt-1 font-display text-[clamp(2.75rem,8vw,5.5rem)] font-light leading-[0.95] text-paper md:text-[clamp(5.5rem,11vw,9.5rem)]"
 				>
 					Meghna <span class="font-normal italic text-brass-light">&amp;</span> Akash
 				</h1>
 			</div>
 
-			<nav aria-label="Primary" class="hidden shrink-0 pt-2 text-right sm:block">
-				<ul class="space-y-2.5 text-sm">
+			<nav aria-label="Primary" class="hidden shrink-0 text-right sm:block">
+				<ul class="space-y-3 md:space-y-4">
 					{
-						links.map((link) => (
-							<li>
+						links.map((link, i) => (
+							<li class="flex items-center justify-end gap-3">
 								<a
 									href={link.href}
-									class="text-paper/80 decoration-brass-light decoration-2 underline-offset-4 hover:text-paper hover:underline"
+									class="text-xs font-medium uppercase tracking-[0.2em] text-paper/80 hover:text-paper md:text-sm"
 								>
 									{link.label}
 								</a>
+								<span class="font-display text-xs italic text-brass-light md:text-sm">
+									{String(i + 1).padStart(2, '0')}
+								</span>
 							</li>
 						))
 					}
@@ -50,10 +53,13 @@ const links = [
 			</nav>
 		</div>
 
-		<div class="mt-auto self-end text-right">
-			<p class="font-display text-2xl text-paper">June 2027</p>
-			<p class="mt-2 text-paper/85">Kerala, India</p>
-			<p class="text-paper/85">Aurora, Illinois</p>
+		<div class="mt-auto flex flex-col items-end self-end text-right">
+			<p class="font-display text-2xl text-paper md:text-4xl">June 2027</p>
+			<div class="my-2.5 h-px w-12 bg-brass-light md:w-16"></div>
+			<div class="space-y-1">
+				<p class="text-xs font-medium uppercase tracking-[0.2em] text-paper/80 md:text-sm">Kerala, India</p>
+				<p class="text-xs font-medium uppercase tracking-[0.2em] text-paper/80 md:text-sm">Aurora, Illinois</p>
+			</div>
 		</div>
 	</div>
 </section>
