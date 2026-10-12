@@ -1,33 +1,31 @@
 ---
 const places = [
 	{
-		place: 'Kerala, India',
+		place: 'Flying in',
 		border: 'border-brass',
-		body: 'Getting there means flying into Kochi or Trivandrum; the temple town itself is still being finalized. We’ll post routes, timing, and a place to stay once the venue is confirmed.',
+		body: 'Both the temple in Venganoor and The Leela in Kovalam are just south of Thiruvananthapuram, so Trivandrum International Airport is the closest to fly into.',
 	},
 	{
-		place: 'Aurora, Illinois',
+		place: 'Getting around',
 		border: 'border-rose',
-		body: 'Aurora sits about 40 minutes west of Chicago, with O’Hare and Midway both a reasonable drive. We’ll share a hotel block and shuttle details closer to the date.',
+		body: 'The temple and The Leela Kovalam are a short drive apart, so you can head straight to the hotel after the thalikettu.',
 	},
 ]
 ---
 
-<section id="travel" class="mx-auto max-w-6xl px-6 py-24 md:px-10 md:py-32">
-	<h2 class="font-display text-4xl text-deep md:text-5xl">Getting there</h2>
-	<p class="mt-4 max-w-[55ch] text-lg text-ink/70">
-		Travel details for both ceremonies are still coming together. A
-		rough shape, for now:
-	</p>
+<section id="travel" class="bg-paper-dim">
+	<div class="mx-auto max-w-6xl px-6 py-24 md:px-10 md:py-32">
+		<h2 class="font-display text-4xl text-deep md:text-5xl">Getting there</h2>
 
-	<div class="mt-14 grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-16">
-		{
-			places.map((p) => (
-				<div class={`border-t-2 pt-6 ${p.border}`}>
-					<h3 class={`font-display text-2xl text-deep`}>{p.place}</h3>
-					<p class="mt-3 text-ink/75 leading-relaxed">{p.body}</p>
-				</div>
-			))
-		}
+		<div class="mt-14 grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-16">
+			{
+				places.map((p) => (
+					<div class={`border-t-2 pt-6 ${p.border}`}>
+						<h3 class={`font-display text-2xl text-deep`}>{p.place}</h3>
+						<p class="mt-3 text-ink/75 leading-relaxed">{p.body}</p>
+					</div>
+				))
+			}
+		</div>
 	</div>
 </section>

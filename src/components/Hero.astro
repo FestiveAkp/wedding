@@ -1,8 +1,10 @@
 ---
+import { Image } from 'astro:assets'
+import heroPhoto from '../assets/2B3A8729.jpg'
 import TempleMark from './TempleMark.astro'
 
 const links = [
-	{ href: '#story', label: 'Our story' },
+	{ href: '#welcome', label: 'Welcome' },
 	{ href: '#ceremonies', label: 'The ceremonies' },
 	{ href: '#travel', label: 'Travel' },
 	{ href: '#faq', label: 'FAQ' },
@@ -10,14 +12,18 @@ const links = [
 ---
 
 <section id="top" class="relative isolate min-h-svh overflow-hidden bg-deep-dark text-paper">
-	{/*
-		Photo placeholder — swap this whole block for a real <img>/<Image> of the two of you,
-		e.g. import photo from '../assets/hero.jpg' and render it absolute inset-0 h-full w-full
-		object-cover here. Keep the two gradient scrims below it so the corner text stays legible.
-	*/}
-	<div class="absolute inset-0 -z-20 bg-deep" />
-	<div class="absolute inset-0 -z-10 bg-linear-to-br from-black/70 via-transparent to-transparent"></div>
-	<div class="absolute inset-0 -z-10 bg-linear-to-tl from-black/70 via-transparent to-transparent"></div>
+	<Image
+		src={heroPhoto}
+		alt="Meghna and Akash smiling at each other in front of Buckingham Fountain at dusk"
+		widths={[640, 1280, 1920, 2560]}
+		sizes="100vw"
+		loading="eager"
+		fetchpriority="high"
+		class="absolute inset-0 -z-20 h-full w-full object-cover object-[43%_center]"
+	/>
+	<div
+		class="absolute inset-0 -z-10 bg-radial-[ellipse_at_43%_55%] from-transparent from-25% to-black/85 to-100%"
+	></div>
 
 	<div class="pointer-events-none absolute inset-3 border border-paper/25 md:inset-6"></div>
 
@@ -26,7 +32,7 @@ const links = [
 			<div class="max-w-md md:max-w-2xl">
 				<p class="text-sm uppercase tracking-widest text-paper/80 md:text-lg">The wedding of</p>
 				<h1
-					class="mt-1 font-display text-[clamp(2.75rem,8vw,5.5rem)] font-light leading-[0.95] text-paper md:text-[clamp(5.5rem,11vw,9.5rem)]"
+					class="mt-1 font-display text-[clamp(2.75rem,8vw,5.5rem)] font-light leading-[0.95] text-paper md:text-[clamp(4.75rem,9.5vw,8rem)]"
 				>
 					Meghna <span class="font-normal italic text-brass-light">&amp;</span> Akash
 				</h1>
@@ -54,12 +60,9 @@ const links = [
 		</div>
 
 		<div class="mt-auto flex flex-col items-end self-end text-right">
-			<p class="font-display text-2xl text-paper md:text-4xl">June 2027</p>
+			<p class="font-display text-2xl text-paper md:text-4xl">June 27, 2027</p>
 			<div class="my-2.5 h-px w-12 bg-brass-light md:w-16"></div>
-			<div class="space-y-1">
-				<p class="text-xs font-medium uppercase tracking-[0.2em] text-paper/80 md:text-sm">Kerala, India</p>
-				<p class="text-xs font-medium uppercase tracking-[0.2em] text-paper/80 md:text-sm">Aurora, Illinois</p>
-			</div>
+			<p class="text-xs font-medium uppercase tracking-[0.2em] text-paper/80 md:text-sm">Kerala, India</p>
 		</div>
 	</div>
 </section>

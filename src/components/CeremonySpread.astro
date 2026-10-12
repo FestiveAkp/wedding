@@ -5,7 +5,7 @@ interface Props {
 	kicker: string
 	title: string
 	venue: string
-	location: string
+	location?: string
 	dateNote: string
 	guestNote: string
 	description: string
@@ -32,7 +32,7 @@ const plateBg = accent === 'brass' ? 'bg-deep-dark' : 'bg-deep-light'
 
 <div class="grid grid-cols-1 items-center gap-10 md:grid-cols-12 md:gap-8">
 	<div
-		class={`flex aspect-[4/3] items-center justify-center rounded-sm md:col-span-5 ${plateBg} ${reverse ? 'md:order-2' : ''}`}
+		class={`flex aspect-[4/3] items-center justify-center md:col-span-5 ${plateBg} ${reverse ? 'md:order-2' : ''}`}
 	>
 		<TempleMark class={`h-40 w-40 ${accentText}`} />
 	</div>
@@ -43,7 +43,7 @@ const plateBg = accent === 'brass' ? 'bg-deep-dark' : 'bg-deep-light'
 			{title}
 		</h3>
 		<p class="mt-2 text-lg text-ink/70">{venue}</p>
-		<p class="text-ink/70">{location}</p>
+		{location && <p class="text-ink/70">{location}</p>}
 
 		<p class={`mt-6 border-l-2 pl-4 text-ink/80 ${accentBorder}`}>
 			{description}
