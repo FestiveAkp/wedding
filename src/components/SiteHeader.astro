@@ -1,32 +1,36 @@
 ---
-const links = [
-	{ href: '#welcome', label: 'Welcome' },
-	{ href: '#schedule', label: 'Schedule' },
-	{ href: '#travel', label: 'Travel' },
-	{ href: '#faq', label: 'FAQ' },
-]
+import { sections } from '../data/sections'
+
+const current = Astro.url.pathname.replace(/\/+$/, '')
+const isCurrent = (href: string) => href.replace(/\/+$/, '') === current
 ---
 
-<header class="sticky top-0 z-40 border-b border-deep/10 bg-paper/90 backdrop-blur">
-	<div class="relative mx-auto max-w-6xl px-6 py-3 md:px-10">
-		<div class="flex items-center justify-between gap-6">
-			<a
-				href="#top"
-				class="font-display text-lg text-deep"
-				aria-label="Meghna and Akash, back to top"
-			>
-				M<span class="text-brass">&amp;</span>A
+<header class="bg-paper">
+	<div class="relative mx-auto max-w-6xl px-6 md:px-10">
+		<div
+			class="flex items-center justify-between border-b border-ink/15 py-2.5 text-[0.65rem] uppercase tracking-widest text-ink/55"
+		>
+			<span>The Wedding Issue</span>
+			<span class="hidden sm:inline">Vol. 01 &middot; Summer 2027</span>
+			<span>Kovalam, Kerala<span class="hidden sm:inline">, India</span></span>
+		</div>
+
+		<div class="flex items-end justify-between gap-6 border-b-2 border-ink py-4">
+			<a href="/" class="font-display text-2xl leading-none text-deep md:text-3xl" aria-label="Meghna and Akash, back to the cover">
+				Meghna <span class="italic text-brass">&amp;</span> Akash
 			</a>
+
 			<nav aria-label="Primary" class="hidden md:block">
-				<ul class="flex items-center gap-8 text-sm text-deep">
+				<ul class="flex items-baseline gap-7 text-xs font-medium uppercase tracking-widest text-ink/70">
 					{
-						links.map((link) => (
+						sections.map((s) => (
 							<li>
 								<a
-									href={link.href}
-									class="decoration-brass decoration-2 underline-offset-4 hover:underline"
+									href={s.href}
+									aria-current={isCurrent(s.href) ? 'page' : undefined}
+									class="hover:text-rose aria-[current=page]:text-rose"
 								>
-									{link.label}
+									{s.title}
 								</a>
 							</li>
 						))
@@ -36,29 +40,32 @@ const links = [
 
 			<details class="group md:hidden">
 				<summary
-					class="flex cursor-pointer list-none items-center gap-2 py-1 text-sm text-deep marker:content-none [&::-webkit-details-marker]:hidden"
+					class="flex cursor-pointer list-none items-center gap-2 text-xs font-medium uppercase tracking-widest text-ink/70 marker:content-none [&::-webkit-details-marker]:hidden"
 				>
-					Menu
+					Contents
 					<svg
 						viewBox="0 0 12 8"
 						class="h-2.5 w-3 fill-none stroke-brass stroke-2 transition-transform group-open:rotate-180"
+						aria-hidden="true"
 					>
 						<path d="M1 1.5 6 6.5 11 1.5" stroke-linecap="round" stroke-linejoin="round" />
 					</svg>
 				</summary>
 				<nav
 					aria-label="Primary"
-					class="absolute right-6 top-full mt-2 border border-deep/10 bg-paper px-5 py-4"
+					class="absolute inset-x-6 top-full z-40 border-x border-b border-ink/15 bg-paper px-5 py-4 shadow-sm"
 				>
-					<ul class="space-y-2.5 text-sm text-deep">
+					<ul class="divide-y divide-ink/10">
 						{
-							links.map((link) => (
+							sections.map((s) => (
 								<li>
 									<a
-										href={link.href}
-										class="decoration-brass decoration-2 underline-offset-4 hover:underline"
+										href={s.href}
+										aria-current={isCurrent(s.href) ? 'page' : undefined}
+										class="flex items-baseline gap-3 py-2.5 font-display text-lg text-deep aria-[current=page]:text-rose"
 									>
-										{link.label}
+										<span class="w-6 text-sm italic text-brass">{s.no}</span>
+										{s.title}
 									</a>
 								</li>
 							))

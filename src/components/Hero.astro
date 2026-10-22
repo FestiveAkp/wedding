@@ -1,16 +1,9 @@
 ---
 import { Image } from 'astro:assets'
 import heroPhoto from '../assets/2B3A8729.jpg'
-
-const links = [
-	{ href: '#welcome', label: 'Welcome' },
-	{ href: '#schedule', label: 'Schedule' },
-	{ href: '#travel', label: 'Travel' },
-	{ href: '#faq', label: 'FAQ' },
-]
 ---
 
-<section id="top" class="relative isolate min-h-svh overflow-hidden bg-deep-dark text-paper">
+<section class="relative isolate min-h-svh overflow-hidden bg-deep-dark text-paper">
 	<Image
 		src={heroPhoto}
 		alt="Meghna and Akash smiling at each other in front of Buckingham Fountain at dusk"
@@ -20,48 +13,39 @@ const links = [
 		fetchpriority="high"
 		class="absolute inset-0 -z-20 h-full w-full object-cover object-[43%_center]"
 	/>
+	<div class="absolute inset-0 -z-10 bg-linear-to-b from-black/70 via-transparent via-40% to-black/80"></div>
+
 	<div
-		class="absolute inset-0 -z-10 bg-radial-[ellipse_at_43%_55%] from-transparent from-25% to-black/85 to-100%"
-	></div>
+		class="absolute inset-x-3 top-0 flex h-10 items-center justify-between text-[0.7rem] uppercase tracking-widest text-paper/90 md:inset-x-6 md:h-12"
+	>
+		<span>Special Edition</span>
+		<span>Vol. 01 &middot; Summer 2027</span>
+	</div>
 
-	<div class="pointer-events-none absolute inset-3 border border-paper/25 md:inset-6"></div>
+	<div class="pointer-events-none absolute inset-x-3 inset-y-10 border border-paper/25 md:inset-x-6 md:inset-y-12"></div>
 
-	<div class="relative flex min-h-svh flex-col p-10 md:p-14">
-		<div class="flex items-start justify-between gap-8">
-			<div class="max-w-md md:max-w-2xl">
-				<p class="text-sm uppercase tracking-widest text-paper/80 md:text-lg">The wedding of</p>
-				<h1
-					class="mt-1 font-display text-[clamp(2.75rem,8vw,5.5rem)] font-light leading-[0.95] text-paper md:text-[clamp(4.75rem,9.5vw,8rem)]"
+	<div class="relative flex min-h-svh flex-col px-10 py-16 md:px-14 md:py-20">
+		<div class="max-w-md md:max-w-none">
+			<p class="text-sm uppercase tracking-widest text-paper/90 md:text-lg">The wedding of</p>
+			<h1
+				class="mt-1 font-display text-[clamp(3rem,15vw,5.5rem)] font-light leading-[0.95] text-paper md:text-[clamp(4.75rem,9.5vw,8rem)]"
+			>
+				<span class="whitespace-nowrap">Meghna</span>{' '}<span class="whitespace-nowrap"
+					><span class="font-normal italic text-brass-light">&amp;</span> Akash</span
 				>
-					Meghna <span class="font-normal italic text-brass-light">&amp;</span> Akash
-				</h1>
-			</div>
-
-			<nav aria-label="Primary" class="hidden shrink-0 text-right sm:block">
-				<ul class="space-y-3 md:space-y-4">
-					{
-						links.map((link, i) => (
-							<li class="flex items-center justify-end gap-3">
-								<a
-									href={link.href}
-									class="text-xs font-medium uppercase tracking-[0.2em] text-paper/80 hover:text-paper md:text-sm"
-								>
-									{link.label}
-								</a>
-								<span class="font-display text-xs italic text-brass-light md:text-sm">
-									{String(i + 1).padStart(2, '0')}
-								</span>
-							</li>
-						))
-					}
-				</ul>
-			</nav>
+			</h1>
 		</div>
 
-		<div class="mt-auto flex flex-col items-end self-end text-right">
-			<p class="font-display text-2xl text-paper md:text-4xl">June 27, 2027</p>
-			<div class="my-2.5 h-px w-12 bg-brass-light md:w-16"></div>
-			<p class="text-xs font-medium uppercase tracking-[0.2em] text-paper/80 md:text-sm">Kovalam, Kerala, India</p>
+		<div class="mt-auto self-end pt-16 text-right">
+			<p class="font-display text-3xl md:text-6xl">June 27, 2027</p>
+			<p class="mt-2 text-xs font-medium uppercase tracking-widest text-paper/80">Kovalam, Kerala, India</p>
 		</div>
 	</div>
+
+	<a
+		href="#contents"
+		class="absolute bottom-0 left-1/2 flex h-10 -translate-x-1/2 items-center whitespace-nowrap text-[0.7rem] uppercase tracking-widest text-paper/90 hover:text-paper md:h-12"
+	>
+		Inside this issue &darr;
+	</a>
 </section>

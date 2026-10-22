@@ -1,0 +1,18 @@
+---
+import Layout from './Layout.astro'
+import SiteHeader from '../components/SiteHeader.astro'
+import NextPage from '../components/NextPage.astro'
+import SiteFooter from '../components/SiteFooter.astro'
+import { findSection } from '../data/sections'
+
+const { section, next } = findSection(Astro.url.pathname)
+---
+
+<Layout title={`${section.title} · Meghna & Akash`} description={section.dek}>
+	<SiteHeader />
+	<main>
+		<slot />
+	</main>
+	<NextPage next={next} />
+	<SiteFooter />
+</Layout>

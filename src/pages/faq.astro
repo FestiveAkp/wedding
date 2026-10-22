@@ -1,0 +1,45 @@
+---
+import Page from '../layouts/Page.astro'
+import PageOpener from '../components/PageOpener.astro'
+import { sections } from '../data/sections'
+
+const { no, title } = sections[3]
+
+const faqs = [
+	{
+		q: 'What should I wear?',
+		a: 'We’ll add dress guidance here well ahead of the date.',
+	},
+	{
+		q: 'Are children welcome?',
+		a: 'Yes, children are welcome!',
+	},
+	{
+		q: 'Is there a wedding registry?',
+		a: 'No registry, and please don’t feel you need to bring anything — your being there is what matters to us. If you’d still like to give something, we’ll have a drop box for cash gifts at the wedding.',
+	},
+]
+---
+
+<Page>
+	<article>
+		<PageOpener no={no}>
+			{title}
+		</PageOpener>
+
+		<div class="mx-auto max-w-6xl px-6 py-14 md:px-10 md:py-20">
+			<div class="mx-auto max-w-3xl">
+				{
+					faqs.map((item) => (
+						<div class="grid grid-cols-[--spacing(10)_1fr] items-baseline gap-x-3 border-t border-ink/15 py-8 first:border-t-0 first:pt-0 md:grid-cols-[--spacing(12)_1fr]">
+							<span class="font-display text-3xl italic text-brass" aria-hidden="true">Q.</span>
+							<h2 class="font-display text-2xl leading-snug text-deep md:text-3xl">{item.q}</h2>
+							<span class="mt-4 font-display text-2xl italic text-rose" aria-hidden="true">A.</span>
+							<p class="mt-4 max-w-[60ch] text-lg leading-relaxed text-ink/80">{item.a}</p>
+						</div>
+					))
+				}
+			</div>
+		</div>
+	</article>
+</Page>

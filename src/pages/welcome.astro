@@ -1,0 +1,51 @@
+---
+import Page from '../layouts/Page.astro'
+import { Image } from 'astro:assets'
+import PageOpener from '../components/PageOpener.astro'
+import welcomePhoto from '../assets/2B3A8794.jpg'
+import { sections } from '../data/sections'
+
+const { no, title } = sections[0]
+---
+
+<Page>
+	<article>
+		<PageOpener no={no}>
+			{title}
+		</PageOpener>
+
+		<div class="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-6 py-14 md:grid-cols-12 md:gap-10 md:px-10 md:py-20">
+			<figure class="md:col-span-5">
+				<Image
+					src={welcomePhoto}
+					alt="Meghna resting her head on Akash's shoulder as they look out at the Chicago skyline at dusk"
+					widths={[480, 800, 1200]}
+					sizes="(min-width: 768px) 40vw, 100vw"
+					class="aspect-3/4 w-full object-cover object-[50%_60%]"
+				/>
+			</figure>
+
+			<div class="md:col-span-6 md:col-start-7 md:self-center">
+				<div
+					class="space-y-5 text-lg leading-relaxed text-ink/85 [&>p:first-child]:first-letter:float-left [&>p:first-child]:first-letter:mr-3 [&>p:first-child]:first-letter:mt-1 [&>p:first-child]:first-letter:font-display [&>p:first-child]:first-letter:text-7xl [&>p:first-child]:first-letter:leading-[0.8] [&>p:first-child]:first-letter:text-rose"
+				>
+					<p>
+						On June 27, 2027, we&rsquo;re getting married in Trivandrum: a morning
+						at the temple, then lunch by the sea with the people we love
+						most. We&rsquo;re so excited, and we can&rsquo;t wait to
+						celebrate with you.
+					</p>
+					<p>
+						Everything you need to plan is in these pages, and we&rsquo;ll keep
+						them updated as details are finalized.
+					</p>
+				</div>
+
+				<p class="mt-12 text-xs uppercase tracking-widest text-ink/50">With love,</p>
+				<p class="mt-2 font-display text-3xl italic text-deep">
+					Meghna <span class="text-brass">&amp;</span> Akash
+				</p>
+			</div>
+		</div>
+	</article>
+</Page>

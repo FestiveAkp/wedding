@@ -1,22 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro'
-import SiteHeader from '../components/SiteHeader.astro'
 import Hero from '../components/Hero.astro'
-import Welcome from '../components/Welcome.astro'
-import Schedule from '../components/Schedule.astro'
-import Travel from '../components/Travel.astro'
-import Faq from '../components/Faq.astro'
-import Rsvp from '../components/Rsvp.astro'
+import Contents from '../components/Contents.astro'
 import SiteFooter from '../components/SiteFooter.astro'
 ---
 
 <Layout>
 	<Hero />
-	<SiteHeader />
-	<Welcome />
-	<Schedule />
-	<Travel />
-	<Faq />
-	<Rsvp />
+	<main>
+		<Contents />
+	</main>
 	<SiteFooter />
 </Layout>

@@ -1,0 +1,25 @@
+---
+import { sections } from '../data/sections'
+---
+
+<section id="contents" class="mx-auto max-w-6xl px-6 pt-20 pb-12 md:px-10 md:pt-28 md:pb-16">
+	<div class="border-b border-ink/15 pb-3">
+		<h2 class="font-display text-3xl text-deep md:text-5xl">Contents</h2>
+	</div>
+
+	<ol class="divide-y divide-ink/15">
+		{
+			sections.map((s) => (
+				<li>
+					<a
+						href={s.href}
+						class="group grid grid-cols-[3rem_1fr] items-baseline gap-x-4 py-6 font-display text-3xl font-light md:grid-cols-[5rem_1fr] md:gap-x-8 md:py-7 md:text-5xl"
+					>
+						<span class="italic text-brass">{s.no}</span>
+						<span class="text-deep transition-colors group-hover:text-rose">{s.title}</span>
+					</a>
+				</li>
+			))
+		}
+	</ol>
+</section>

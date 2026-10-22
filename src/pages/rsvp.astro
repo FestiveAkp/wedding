@@ -1,0 +1,23 @@
+---
+import Page from '../layouts/Page.astro'
+import PageOpener from '../components/PageOpener.astro'
+import { sections } from '../data/sections'
+
+const { no, title } = sections[4]
+---
+
+<Page>
+	<article>
+		<PageOpener no={no}>
+			{title}
+		</PageOpener>
+
+		<div class="mx-auto max-w-6xl px-6 py-14 md:px-10 md:py-20">
+			<div class="mx-auto max-w-2xl bg-paper-dim px-6 py-12 text-center md:px-12">
+				<p class="font-display text-2xl font-light leading-snug text-deep md:text-3xl">
+					Closer to the date, we&rsquo;ll send a text with a link to RSVP online.
+				</p>
+			</div>
+		</div>
+	</article>
+</Page>

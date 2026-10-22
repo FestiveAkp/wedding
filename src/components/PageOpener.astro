@@ -1,0 +1,17 @@
+---
+interface Props {
+	no: string
+}
+
+const { no } = Astro.props
+---
+
+<div class="mx-auto max-w-6xl px-6 pt-14 md:px-10 md:pt-20">
+	<span class="font-display text-3xl font-light italic text-brass md:text-5xl">{no}</span>
+	<h1
+		class="mt-4 font-display text-[clamp(3rem,11vw,8.5rem)] font-light leading-[0.9] tracking-tight text-deep"
+	>
+		<slot />
+	</h1>
+	<div class="mt-10 h-px bg-ink/15 md:mt-14"></div>
+</div>
