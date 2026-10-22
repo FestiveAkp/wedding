@@ -3,7 +3,7 @@ import Page from '../layouts/Page.astro'
 import PageOpener from '../components/PageOpener.astro'
 import PhoneForm from '../components/PhoneForm.astro'
 import { sections } from '../data/sections'
-import { latestRsvp, saveRsvp } from '../lib/guests'
+import { joinNames, latestRsvp, saveRsvp } from '../lib/guests'
 import { identifyVisitor } from '../lib/visitor'
 
 export const prerender = false
@@ -19,13 +19,21 @@ let error: string | undefined
 if (Astro.request.method === 'POST' && household && phone) {
 	const form = await Astro.request.formData()
 	const reply = form.get('attending')
-	const count = Math.min(Math.max(parseInt(String(form.get('count'))) || 1, 1), household.maxGuests)
+	const invited = form.getAll('guest').map(String).filter((name) => household.guests.includes(name))
+	const plusOnes = form
+		.getAll('plusOne')
+		.map((name) => String(name).trim().slice(0, 100))
+		.filter(Boolean)
+		.slice(0, household.maxGuests - household.guests.length)
+	const names = household.maxGuests === 1 ? household.guests : [...invited, ...plusOnes]
 
-	if (reply === 'yes' || reply === 'no') {
+	if (reply === 'yes' && names.length === 0) {
+		error = 'Please let us know who will be coming.'
+	} else if (reply === 'yes' || reply === 'no') {
 		try {
 			await saveRsvp(household, phone, {
 				attending: reply === 'yes',
-				count: reply === 'yes' ? count : 0,
+				names: reply === 'yes' ? names : [],
 				message: String(form.get('message') ?? '').trim().slice(0, 2000),
 			})
 			const done = new URL(Astro.url)
@@ -44,6 +52,12 @@ const current = household && (await latestRsvp(household).catch(() => undefined)
 const saved = Astro.url.searchParams.has('saved') && current
 const changeUrl = new URL(Astro.url)
 changeUrl.searchParams.delete('saved')
+
+// Everyone invited is selected until a previous reply says otherwise
+const previousNames = current?.attending ? current.names : []
+const isComing = (name: string) => previousNames.length === 0 || previousNames.includes(name)
+const previousPlusOnes = previousNames.filter((name) => !household?.guests.includes(name))
+const plusOneSeats = household ? household.maxGuests - household.guests.length : 0
 ---
 
 <Page>
@@ -66,7 +80,7 @@ changeUrl.searchParams.delete('saved')
 							</p>
 							<p class="mt-4 text-ink/70">
 								{saved.attending
-									? `We’ve got you down for ${saved.count} ${saved.count === 1 ? 'guest' : 'guests'}.`
+									? `We’ve saved a seat for ${joinNames(saved.names)}.`
 									: 'We’ll miss you, and we’ll be thinking of you on the day.'}
 							</p>
 							<div class="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
@@ -121,19 +135,40 @@ changeUrl.searchParams.delete('saved')
 								</label>
 							</fieldset>
 
-							{household.maxGuests > 1 ? (
-								<div class="hidden group-has-[#attending-yes:checked]:block">
-									<label for="count" class="block font-medium text-deep">Number attending</label>
-									<select id="count" name="count" class="mt-2 w-full border border-ink/25 bg-paper px-4 py-3 text-lg">
-										{Array.from({ length: household.maxGuests }, (_, i) => i + 1).map((n) => (
-											<option value={n} selected={n === (current?.count || household.maxGuests)}>
-												{n} of {household.maxGuests}
-											</option>
+							{household.maxGuests > 1 && (
+								<fieldset class="hidden group-has-[#attending-yes:checked]:block">
+									<legend class="mb-4 text-pretty">
+										<span class="block font-medium text-deep">Who will be coming?</span>
+										<span class="mt-1 block text-sm text-ink/60">
+											{household.guests.length > 1 ? 'Unselect anyone who can’t make it.' : 'Let us know who you’re bringing.'}
+										</span>
+									</legend>
+									<div class="space-y-3">
+										{household.guests.length > 1 &&
+											household.guests.map((name) => (
+												<label class="flex cursor-pointer items-center gap-3 border border-ink/25 px-4 py-3 text-lg transition-colors has-checked:border-deep">
+													<input type="checkbox" name="guest" value={name} checked={isComing(name)} class="size-5 accent-deep" />
+													{name}
+												</label>
+											))}
+										{household.guests.length === 1 && <input type="hidden" name="guest" value={household.guests[0]} />}
+										{Array.from({ length: plusOneSeats }, (_, i) => (
+											<div>
+												<label for={`plus-one-${i}`} class="sr-only">Guest {i + 1}</label>
+												<input
+													type="text"
+													id={`plus-one-${i}`}
+													name="plusOne"
+													maxlength="100"
+													autocomplete="off"
+													value={previousPlusOnes[i]}
+													placeholder={plusOneSeats === 1 ? 'Your guest’s full name' : `Guest ${i + 1}’s full name`}
+													class="w-full border border-ink/25 bg-paper px-4 py-3 text-lg placeholder:text-ink/30"
+												/>
+											</div>
 										))}
-									</select>
-								</div>
-							) : (
-								<input type="hidden" name="count" value="1" />
+									</div>
+								</fieldset>
 							)}
 
 							<div>

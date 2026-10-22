@@ -7,18 +7,21 @@ export interface Household {
 	id: string;
 	greeting: string;
 	maxGuests: number;
+	/** Full names of the invited guests; any remaining seats are unnamed plus-ones */
+	guests: string[];
 	/** Events beyond the wedding, which everyone is invited to */
 	events: EventId[];
 }
 
 export interface Rsvp {
 	attending: boolean;
-	count: number;
+	/** Names of everyone in the household who is coming */
+	names: string[];
 	message: string;
 }
 
 const GUEST_RANGE = `'Guest List'!A:Z`;
-const RSVP_RANGE = `'RSVPs'!A:G`;
+const RSVP_RANGE = `'RSVPs'!A:H`;
 const CACHE_MS = 60_000;
 
 // Only these columns are read; everything else in the sheet stays private
@@ -81,11 +84,12 @@ function parseGuestRows([header = [], ...rows]: string[][]): GuestList {
 
 		let household = households.get(id);
 		if (!household) {
-			household = { id, greeting: '', maxGuests: 0, events: [] };
+			household = { id, greeting: '', maxGuests: 0, guests: [], events: [] };
 			households.set(id, household);
 			names.set(id, []);
 		}
 		names.get(id)!.push(name.split(/\s+/)[0]);
+		household.guests.push(name);
 		household.maxGuests += parseInt(cell(column.maxGuests)) || 1;
 		for (const [event, index] of eventColumns) {
 			if (cell(index) === 'TRUE' && !household.events.includes(event)) household.events.push(event);
@@ -104,7 +108,7 @@ function parseGuestRows([header = [], ...rows]: string[][]): GuestList {
 	return { households, phones };
 }
 
-function joinNames(names: string[]) {
+export function joinNames(names: string[]) {
 	return names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} & ${names.at(-1)}`;
 }
 
@@ -121,7 +125,8 @@ export async function latestRsvp(household: Household): Promise<Rsvp | undefined
 	const rows = await getValues(RSVP_RANGE);
 	const row = rows.findLast((r) => r[1] === household.id);
 	if (!row) return;
-	return { attending: row[4] === 'Yes', count: parseInt(row[5]) || 0, message: row[6] ?? '' };
+	const names = (row[6] ?? '').split(', ').filter(Boolean);
+	return { attending: row[4] === 'Yes', names, message: row[7] ?? '' };
 }
 
 export async function saveRsvp(household: Household, phone: string, rsvp: Rsvp) {
@@ -131,7 +136,8 @@ export async function saveRsvp(household: Household, phone: string, rsvp: Rsvp) 
 		household.greeting,
 		phone,
 		rsvp.attending ? 'Yes' : 'No',
-		rsvp.count,
+		rsvp.names.length,
+		rsvp.names.join(', '),
 		rsvp.message,
 	];
 	await appendRow(RSVP_RANGE, row);
