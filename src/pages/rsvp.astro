@@ -1,9 +1,49 @@
 ---
 import Page from '../layouts/Page.astro'
 import PageOpener from '../components/PageOpener.astro'
+import PhoneForm from '../components/PhoneForm.astro'
 import { sections } from '../data/sections'
+import { latestRsvp, saveRsvp } from '../lib/guests'
+import { identifyVisitor } from '../lib/visitor'
+
+export const prerender = false
 
 const { no, title } = sections[4]
+const travel = sections[2]
+const replyBy = 'April 1, 2027'
+
+const visitor = await identifyVisitor(Astro.url, Astro.cookies)
+const { household, phone } = visitor
+let error: string | undefined
+
+if (Astro.request.method === 'POST' && household && phone) {
+	const form = await Astro.request.formData()
+	const reply = form.get('attending')
+	const count = Math.min(Math.max(parseInt(String(form.get('count'))) || 1, 1), household.maxGuests)
+
+	if (reply === 'yes' || reply === 'no') {
+		try {
+			await saveRsvp(household, phone, {
+				attending: reply === 'yes',
+				count: reply === 'yes' ? count : 0,
+				message: String(form.get('message') ?? '').trim().slice(0, 2000),
+			})
+			const done = new URL(Astro.url)
+			done.searchParams.set('saved', '')
+			return Astro.redirect(done.pathname + done.search, 303)
+		} catch (e) {
+			console.error('Could not save RSVP', e)
+			error = 'Something went wrong saving your reply. Please try again in a few minutes.'
+		}
+	} else {
+		error = 'Please let us know whether you can make it.'
+	}
+}
+
+const current = household && (await latestRsvp(household).catch(() => undefined))
+const saved = Astro.url.searchParams.has('saved') && current
+const changeUrl = new URL(Astro.url)
+changeUrl.searchParams.delete('saved')
 ---
 
 <Page>
@@ -12,11 +52,117 @@ const { no, title } = sections[4]
 			{title}
 		</PageOpener>
 
-		<div class="mx-auto max-w-6xl px-6 py-14 md:px-10 md:py-20">
-			<div class="mx-auto max-w-2xl bg-paper-dim px-6 py-12 text-center md:px-12">
-				<p class="font-display text-2xl font-light leading-snug text-deep md:text-3xl">
-					Closer to the date, we&rsquo;ll send a text with a link to RSVP online.
-				</p>
+		<div class="mx-auto max-w-6xl px-6 py-10 md:px-10 md:py-20">
+			<div class="mx-auto max-w-2xl sm:bg-paper-dim sm:px-6 sm:py-12 md:px-12">
+				{
+					!household && <PhoneForm visitor={visitor} label="Find your invitation" />
+				}
+
+				{
+					household && saved && (
+						<div class="text-center">
+							<p class="font-display text-3xl font-light leading-snug text-deep md:text-4xl">
+								{saved.attending ? 'Thank you, we can’t wait to see you!' : 'Thank you for letting us know.'}
+							</p>
+							<p class="mt-4 text-ink/70">
+								{saved.attending
+									? `We’ve got you down for ${saved.count} ${saved.count === 1 ? 'guest' : 'guests'}.`
+									: 'We’ll miss you, and we’ll be thinking of you on the day.'}
+							</p>
+							<div class="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+								{saved.attending && (
+									<a href={travel.href} class="bg-deep px-8 py-3 font-medium text-paper transition-colors hover:bg-deep-light">
+										Next: plan your trip &rarr;
+									</a>
+								)}
+								<a href={changeUrl.pathname + changeUrl.search} class="text-sm text-ink/60 underline underline-offset-2 hover:text-rose">
+									Change your reply
+								</a>
+							</div>
+						</div>
+					)
+				}
+
+				{
+					household && !saved && (
+						<form method="post" class="group space-y-8">
+							<div class="border-b border-ink/15 pb-8 text-center">
+								<p class="font-display text-3xl text-deep md:text-4xl">{household.greeting}</p>
+								<p class="mt-1 text-balance text-ink/70">
+									{household.greeting.includes(' & ') ? 'are' : 'is'} warmly invited to the wedding of Meghna &amp; Akash
+								</p>
+								<p class="mt-3 font-display text-lg italic text-ink/70 md:text-xl">
+									<span class="block sm:inline">June 27, 2027</span>
+									<span class="hidden sm:inline"> &middot; </span>
+									<span class="block sm:inline">Kovalam, Kerala, India</span>
+								</p>
+								<a href={travel.href} class="mt-2 inline-block text-sm text-ink/60 underline underline-offset-2 hover:text-rose">
+									Planning the trip? See travel details &rarr;
+								</a>
+							</div>
+
+							<fieldset class="grid gap-3 sm:grid-cols-2">
+								<legend class="mb-4 text-balance">
+									<span class="block font-medium text-deep">Will you be joining us for the wedding and lunch?</span>
+									<span class="mt-1 block text-sm text-ink/60">
+										{household.maxGuests === 1
+											? 'We’ve reserved a seat in your honour.'
+											: `We’ve reserved ${household.maxGuests} seats in your honour.`}
+										{current ? ' You can change your reply any time.' : ` Kindly reply by ${replyBy}.`}
+									</span>
+								</legend>
+								<label class="cursor-pointer border border-ink/25 px-4 py-4 text-center text-lg transition-colors has-checked:border-deep has-checked:bg-deep has-checked:text-paper">
+									<input type="radio" name="attending" value="yes" id="attending-yes" class="sr-only" checked={current?.attending === true} />
+									Joyfully accept
+								</label>
+								<label class="cursor-pointer border border-ink/25 px-4 py-4 text-center text-lg transition-colors has-checked:border-deep has-checked:bg-deep has-checked:text-paper">
+									<input type="radio" name="attending" value="no" class="sr-only" checked={current?.attending === false} />
+									Regretfully decline
+								</label>
+							</fieldset>
+
+							{household.maxGuests > 1 ? (
+								<div class="hidden group-has-[#attending-yes:checked]:block">
+									<label for="count" class="block font-medium text-deep">Number attending</label>
+									<select id="count" name="count" class="mt-2 w-full border border-ink/25 bg-paper px-4 py-3 text-lg">
+										{Array.from({ length: household.maxGuests }, (_, i) => i + 1).map((n) => (
+											<option value={n} selected={n === (current?.count || household.maxGuests)}>
+												{n} of {household.maxGuests}
+											</option>
+										))}
+									</select>
+								</div>
+							) : (
+								<input type="hidden" name="count" value="1" />
+							)}
+
+							<div>
+								<label for="message" class="block font-medium text-deep">
+									Anything we should know? <span class="font-normal text-ink/50">(optional)</span>
+								</label>
+								<textarea
+									id="message"
+									name="message"
+									rows="3"
+									maxlength="2000"
+									placeholder="Dietary needs, a note for us…"
+									class="mt-2 w-full border border-ink/25 bg-paper px-4 py-3 placeholder:text-ink/30"
+								>{current?.message}</textarea>
+							</div>
+
+							{error && <p role="alert" class="text-rose">{error}</p>}
+
+							<div class="flex flex-wrap items-center justify-between gap-4">
+								<button type="submit" class="bg-deep px-8 py-3 font-medium text-paper transition-colors hover:bg-deep-light">
+									{current ? 'Update reply' : 'Send reply'}
+								</button>
+								<a href="?switch" class="text-sm text-ink/50 underline underline-offset-2 hover:text-rose">
+									Not you? Use a different number
+								</a>
+							</div>
+						</form>
+					)
+				}
 			</div>
 		</div>
 	</article>

@@ -1,0 +1,138 @@
+import { appendRow, getValues } from './sheets';
+import { phoneCandidates, sheetPhone } from './phone';
+
+export type EventId = 'welcome' | 'mehndi';
+
+export interface Household {
+	id: string;
+	greeting: string;
+	maxGuests: number;
+	/** Events beyond the wedding, which everyone is invited to */
+	events: EventId[];
+}
+
+export interface Rsvp {
+	attending: boolean;
+	count: number;
+	message: string;
+}
+
+const GUEST_RANGE = `'Guest List'!A:Z`;
+const RSVP_RANGE = `'RSVPs'!A:G`;
+const CACHE_MS = 60_000;
+
+// Only these columns are read; everything else in the sheet stays private
+const COLUMNS = {
+	name: 'Name',
+	household: 'Household ID',
+	maxGuests: 'Max Guest Count',
+	contact: 'Contact',
+};
+
+const EVENT_COLUMNS: Record<EventId, string> = {
+	welcome: 'Invited to Welcome Party?',
+	mehndi: 'Invited to Mehendi?',
+};
+
+interface GuestList {
+	households: Map<string, Household>;
+	/** Full phone number (digits only) → household ID */
+	phones: Map<string, string>;
+}
+
+let cache: { at: number; list: GuestList } | undefined;
+
+async function guestList(): Promise<GuestList> {
+	if (cache && Date.now() - cache.at < CACHE_MS) return cache.list;
+	try {
+		const rows = await getValues(GUEST_RANGE);
+		cache = { at: Date.now(), list: parseGuestRows(rows) };
+	} catch (error) {
+		// Keep serving the last good copy if Google has a bad minute
+		if (!cache) throw error;
+		console.error('Guest list refresh failed, serving cached copy', error);
+	}
+	return cache.list;
+}
+
+/** Each row is one guest; rows sharing a Household ID RSVP together. */
+function parseGuestRows([header = [], ...rows]: string[][]): GuestList {
+	const columnIndex = (title: string) => {
+		const index = header.findIndex((h) => h.trim() === title);
+		if (index === -1) throw new Error(`Guest list is missing the "${title}" column`);
+		return index;
+	};
+	const column = Object.fromEntries(
+		Object.entries(COLUMNS).map(([key, title]) => [key, columnIndex(title)]),
+	) as Record<keyof typeof COLUMNS, number>;
+	const eventColumns = Object.entries(EVENT_COLUMNS).map(
+		([event, title]) => [event as EventId, columnIndex(title)] as const,
+	);
+
+	const households = new Map<string, Household>();
+	const names = new Map<string, string[]>();
+	const phones = new Map<string, string>();
+
+	rows.forEach((row, i) => {
+		const cell = (index: number) => (row[index] ?? '').trim();
+		const id = cell(column.household);
+		const name = cell(column.name);
+		if (!id || !name) return;
+
+		let household = households.get(id);
+		if (!household) {
+			household = { id, greeting: '', maxGuests: 0, events: [] };
+			households.set(id, household);
+			names.set(id, []);
+		}
+		names.get(id)!.push(name.split(/\s+/)[0]);
+		household.maxGuests += parseInt(cell(column.maxGuests)) || 1;
+		for (const [event, index] of eventColumns) {
+			if (cell(index) === 'TRUE' && !household.events.includes(event)) household.events.push(event);
+		}
+
+		const phone = sheetPhone(cell(column.contact));
+		if (!phone) return;
+		if (phones.has(phone) && phones.get(phone) !== id) {
+			console.warn(`Row ${i + 2}: phone is already used by household ${phones.get(phone)}`);
+			return;
+		}
+		phones.set(phone, id);
+	});
+
+	for (const household of households.values()) household.greeting = joinNames(names.get(household.id)!);
+	return { households, phones };
+}
+
+function joinNames(names: string[]) {
+	return names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} & ${names.at(-1)}`;
+}
+
+/** Finds the household a guest-typed phone number belongs to, along with the matched full number. */
+export async function findHousehold(input: string) {
+	const { households, phones } = await guestList();
+	for (const phone of phoneCandidates(input)) {
+		const id = phones.get(phone);
+		if (id) return { household: households.get(id)!, phone };
+	}
+}
+
+export async function latestRsvp(household: Household): Promise<Rsvp | undefined> {
+	const rows = await getValues(RSVP_RANGE);
+	const row = rows.findLast((r) => r[1] === household.id);
+	if (!row) return;
+	return { attending: row[4] === 'Yes', count: parseInt(row[5]) || 0, message: row[6] ?? '' };
+}
+
+export async function saveRsvp(household: Household, phone: string, rsvp: Rsvp) {
+	const row = [
+		new Date().toISOString(),
+		household.id,
+		household.greeting,
+		phone,
+		rsvp.attending ? 'Yes' : 'No',
+		rsvp.count,
+		rsvp.message,
+	];
+	await appendRow(RSVP_RANGE, row);
+}

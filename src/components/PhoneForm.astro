@@ -1,0 +1,44 @@
+---
+import type { Visitor } from '../lib/visitor'
+
+interface Props {
+	visitor: Visitor
+	label: string
+}
+
+const { visitor, label } = Astro.props
+---
+
+<form method="get" class="mx-auto max-w-md text-left">
+	<label for="phone" class="block font-display text-2xl text-deep md:text-3xl">{label}</label>
+	<p class="mt-2 text-sm text-ink/60">Use the number we message you on WhatsApp.</p>
+	<div class="mt-5 flex gap-3">
+		<input
+			id="phone"
+			name="p"
+			type="tel"
+			inputmode="tel"
+			autocomplete="tel"
+			required
+			placeholder="+91 98765 43210"
+			class="min-w-0 flex-1 border border-ink/25 bg-paper px-4 py-3 text-lg placeholder:text-ink/30 focus:border-deep focus:outline-none"
+		/>
+		<button type="submit" class="bg-deep px-6 py-3 font-medium text-paper transition-colors hover:bg-deep-light">
+			Continue
+		</button>
+	</div>
+	{
+		visitor.notFound && (
+			<p role="alert" class="mt-4 text-rose">
+				We couldn&rsquo;t find that number. Try the number we message you on, or reach out to us directly.
+			</p>
+		)
+	}
+	{
+		visitor.unavailable && (
+			<p role="alert" class="mt-4 text-rose">
+				Something went wrong on our end. Please try again in a few minutes.
+			</p>
+		)
+	}
+</form>
