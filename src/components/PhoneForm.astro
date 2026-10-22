@@ -4,12 +4,14 @@ import type { Visitor } from '../lib/visitor'
 interface Props {
 	visitor: Visitor
 	label: string
+	/** Where to land after submitting, e.g. `#reply` to jump back to the form */
+	action?: string
 }
 
-const { visitor, label } = Astro.props
+const { visitor, label, action } = Astro.props
 ---
 
-<form method="get" class="mx-auto max-w-md text-left">
+<form method="get" action={action} class="mx-auto max-w-md text-left">
 	<label for="phone" class="block font-display text-2xl text-deep md:text-3xl">{label}</label>
 	<p class="mt-2 text-sm text-ink/60">Use the number we message you on WhatsApp.</p>
 	<div class="mt-5 flex gap-3">
