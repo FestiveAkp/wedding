@@ -121,6 +121,11 @@ export async function findHousehold(input: string) {
 	}
 }
 
+/** Names are stored comma-separated, so commas can't appear inside one. */
+export function cleanName(name: string) {
+	return name.replace(/,/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 100);
+}
+
 export async function latestRsvp(household: Household): Promise<Rsvp | undefined> {
 	const rows = await getValues(RSVP_RANGE);
 	const row = rows.findLast((r) => r[1] === household.id);

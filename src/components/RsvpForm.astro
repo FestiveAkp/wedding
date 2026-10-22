@@ -1,0 +1,119 @@
+---
+import { sections } from '../data/sections'
+import type { Household } from '../lib/guests'
+import type { Draft } from '../lib/reply'
+
+interface Props {
+	household: Household
+	draft: Draft
+	/** The household has replied before */
+	replied: boolean
+	error?: string
+}
+
+const { household, draft, replied, error } = Astro.props
+const travel = sections[2]
+const replyBy = 'April 1, 2027'
+
+const isComing = (name: string) => !draft.names || draft.names.includes(name)
+const plusOnes = (draft.names ?? []).filter((name) => !household.guests.includes(name))
+const plusOneSeats = household.maxGuests - household.guests.length
+---
+
+<form method="post" class="group space-y-8">
+	<div class="border-b border-ink/15 pb-8 text-center">
+		<p class="font-display text-3xl text-deep md:text-4xl">{household.greeting}</p>
+		<p class="mt-1 text-pretty text-ink/70">
+			{household.greeting.includes(' & ') ? 'are' : 'is'} warmly invited to the wedding of Meghna &amp; Akash
+		</p>
+		<p class="mt-3 font-display text-lg italic text-ink/70 md:text-xl">
+			<span class="block sm:inline">June 27, 2027</span>
+			<span class="hidden sm:inline"> &middot; </span>
+			<span class="block sm:inline">Kovalam, Kerala, India</span>
+		</p>
+		<a href={travel.href} class="mt-2 inline-block text-sm text-ink/60 underline underline-offset-2 hover:text-rose">
+			Planning the trip? See travel details &rarr;
+		</a>
+	</div>
+
+	<fieldset class="grid gap-3 sm:grid-cols-2">
+		<legend class="mb-4 text-pretty">
+			<span class="block font-medium text-deep">Will you be joining us for the wedding and lunch?</span>
+			<span class="mt-1 block text-sm text-ink/60">
+				{household.maxGuests === 1
+					? 'We’ve reserved a seat in your honour.'
+					: `We’ve reserved ${household.maxGuests} seats in your honour.`}
+				{replied ? ' You can change your reply any time.' : ` Kindly reply by ${replyBy}.`}
+			</span>
+		</legend>
+		<label class="cursor-pointer border border-ink/25 px-4 py-4 text-center text-lg transition-colors has-checked:border-deep has-checked:bg-deep has-checked:text-paper">
+			<input type="radio" name="attending" value="yes" id="attending-yes" class="sr-only" checked={draft.attending === true} />
+			Joyfully accept
+		</label>
+		<label class="cursor-pointer border border-ink/25 px-4 py-4 text-center text-lg transition-colors has-checked:border-deep has-checked:bg-deep has-checked:text-paper">
+			<input type="radio" name="attending" value="no" class="sr-only" checked={draft.attending === false} />
+			Regretfully decline
+		</label>
+	</fieldset>
+
+	{household.maxGuests > 1 && (
+		<fieldset class="hidden group-has-[#attending-yes:checked]:block">
+			<legend class="mb-4 text-pretty">
+				<span class="block font-medium text-deep">Who will be coming?</span>
+				<span class="mt-1 block text-sm text-ink/60">
+					{household.guests.length > 1 ? 'Unselect anyone who can’t make it.' : 'Let us know who you’re bringing.'}
+				</span>
+			</legend>
+			<div class="space-y-3">
+				{household.guests.length > 1 &&
+					household.guests.map((name) => (
+						<label class="flex cursor-pointer items-center gap-3 border border-ink/25 px-4 py-3 text-lg transition-colors has-checked:border-deep">
+							<input type="checkbox" name="guest" value={name} checked={isComing(name)} class="size-5 accent-deep" />
+							{name}
+						</label>
+					))}
+				{household.guests.length === 1 && <input type="hidden" name="guest" value={household.guests[0]} />}
+				{Array.from({ length: plusOneSeats }, (_, i) => (
+					<div>
+						<label for={`plus-one-${i}`} class="sr-only">Guest {i + 1}</label>
+						<input
+							type="text"
+							id={`plus-one-${i}`}
+							name="plusOne"
+							maxlength="100"
+							autocomplete="off"
+							value={plusOnes[i]}
+							placeholder={plusOneSeats === 1 ? 'Your guest’s full name' : `Guest ${i + 1}’s full name`}
+							class="w-full border border-ink/25 bg-paper px-4 py-3 text-lg placeholder:text-ink/30"
+						/>
+					</div>
+				))}
+			</div>
+		</fieldset>
+	)}
+
+	<div>
+		<label for="message" class="block font-medium text-deep">
+			Anything we should know? <span class="font-normal text-ink/50">(optional)</span>
+		</label>
+		<textarea
+			id="message"
+			name="message"
+			rows="3"
+			maxlength="2000"
+			placeholder="Dietary needs, a note for us…"
+			class="mt-2 w-full border border-ink/25 bg-paper px-4 py-3 placeholder:text-ink/30"
+		>{draft.message}</textarea>
+	</div>
+
+	{error && <p role="alert" class="text-rose">{error}</p>}
+
+	<div class="flex flex-wrap items-center justify-between gap-4">
+		<button type="submit" class="bg-deep px-8 py-3 font-medium text-paper transition-colors hover:bg-deep-light">
+			{replied ? 'Update reply' : 'Send reply'}
+		</button>
+		<a href="?switch" class="text-sm text-ink/50 underline underline-offset-2 hover:text-rose">
+			Not you? Use a different number
+		</a>
+	</div>
+</form>

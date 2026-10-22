@@ -11,6 +11,8 @@ export interface Visitor {
 	notFound?: boolean
 	/** The guest list couldn't be loaded */
 	unavailable?: boolean
+	/** The same page without `?p=`, now that the cookie remembers the number */
+	redirect?: string
 }
 
 /**
@@ -41,7 +43,12 @@ export async function identifyVisitor(url: URL, cookies: AstroCookies): Promise<
 			sameSite: 'lax',
 			maxAge: 400 * 24 * 60 * 60,
 		})
-		return match
+		if (!entered) return match
+
+		// Keep the number out of the address bar so it isn't shared along with the link
+		const clean = new URL(url)
+		clean.searchParams.delete('p')
+		return { ...match, redirect: clean.pathname + clean.search }
 	} catch (error) {
 		console.error('Could not load the guest list', error)
 		return { unavailable: true }

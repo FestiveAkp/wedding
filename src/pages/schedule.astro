@@ -12,6 +12,7 @@ export const prerender = false
 const { no, title } = sections[1]
 
 const visitor = await identifyVisitor(Astro.url, Astro.cookies)
+if (visitor.redirect) return Astro.redirect(visitor.redirect)
 const { household } = visitor
 const extraEvents = eventOrder
 	.filter((id) => household?.events.includes(id))

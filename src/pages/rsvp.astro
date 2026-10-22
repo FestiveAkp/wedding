@@ -2,62 +2,63 @@
 import Page from '../layouts/Page.astro'
 import PageOpener from '../components/PageOpener.astro'
 import PhoneForm from '../components/PhoneForm.astro'
+import RsvpForm from '../components/RsvpForm.astro'
+import RsvpThanks from '../components/RsvpThanks.astro'
 import { sections } from '../data/sections'
-import { joinNames, latestRsvp, saveRsvp } from '../lib/guests'
+import { latestRsvp, saveRsvp, type Rsvp } from '../lib/guests'
+import { draftFrom, parseReply, type Draft } from '../lib/reply'
 import { identifyVisitor } from '../lib/visitor'
 
 export const prerender = false
 
 const { no, title } = sections[4]
-const travel = sections[2]
-const replyBy = 'April 1, 2027'
 
 const visitor = await identifyVisitor(Astro.url, Astro.cookies)
+// Only on GET, so a reply posted from an older tab still with ?p= isn't dropped
+if (visitor.redirect && Astro.request.method === 'GET') return Astro.redirect(visitor.redirect)
 const { household, phone } = visitor
+
 let error: string | undefined
+/** The guest's submission, shown again so an error doesn't wipe what they typed */
+let draft: Draft | undefined
 
 if (Astro.request.method === 'POST' && household && phone) {
-	const form = await Astro.request.formData()
-	const reply = form.get('attending')
-	const invited = form.getAll('guest').map(String).filter((name) => household.guests.includes(name))
-	const plusOnes = form
-		.getAll('plusOne')
-		.map((name) => String(name).trim().slice(0, 100))
-		.filter(Boolean)
-		.slice(0, household.maxGuests - household.guests.length)
-	const names = household.maxGuests === 1 ? household.guests : [...invited, ...plusOnes]
-
-	if (reply === 'yes' && names.length === 0) {
-		error = 'Please let us know who will be coming.'
-	} else if (reply === 'yes' || reply === 'no') {
+	const reply = parseReply(await Astro.request.formData(), household)
+	error = reply.error
+	draft = reply.draft
+	if (reply.rsvp) {
 		try {
-			await saveRsvp(household, phone, {
-				attending: reply === 'yes',
-				names: reply === 'yes' ? names : [],
-				message: String(form.get('message') ?? '').trim().slice(0, 2000),
-			})
+			await saveRsvp(household, phone, reply.rsvp)
 			const done = new URL(Astro.url)
-			done.searchParams.set('saved', '')
+			done.searchParams.set('saved', reply.rsvp.attending ? 'yes' : 'no')
 			return Astro.redirect(done.pathname + done.search, 303)
 		} catch (e) {
 			console.error('Could not save RSVP', e)
 			error = 'Something went wrong saving your reply. Please try again in a few minutes.'
 		}
-	} else {
-		error = 'Please let us know whether you can make it.'
 	}
 }
 
-const current = household && (await latestRsvp(household).catch(() => undefined))
-const saved = Astro.url.searchParams.has('saved') && current
+let current: Rsvp | undefined
+let replyUnavailable = false
+if (household) {
+	try {
+		current = await latestRsvp(household)
+	} catch (e) {
+		// Never fall back to a blank form, which would invite overwriting their earlier reply
+		console.error('Could not load RSVP', e)
+		replyUnavailable = true
+	}
+}
+
+// Trust the reply we just saved even if reading it back fails
+const savedReply = Astro.url.searchParams.get('saved')
+const saved =
+	savedReply === 'yes' || savedReply === 'no'
+		? (current ?? { attending: savedReply === 'yes', names: [], message: '' })
+		: undefined
 const changeUrl = new URL(Astro.url)
 changeUrl.searchParams.delete('saved')
-
-// Everyone invited is selected until a previous reply says otherwise
-const previousNames = current?.attending ? current.names : []
-const isComing = (name: string) => previousNames.length === 0 || previousNames.includes(name)
-const previousPlusOnes = previousNames.filter((name) => !household?.guests.includes(name))
-const plusOneSeats = household ? household.maxGuests - household.guests.length : 0
 ---
 
 <Page>
@@ -66,136 +67,19 @@ const plusOneSeats = household ? household.maxGuests - household.guests.length :
 			{title}
 		</PageOpener>
 
-		<div id="reply"  class="mx-auto max-w-6xl px-6 py-10 md:px-10 md:py-20">
+		<div id="reply" class="mx-auto max-w-6xl px-6 py-10 md:px-10 md:py-20">
 			<div class="mx-auto max-w-2xl sm:bg-paper-dim sm:px-6 sm:py-12 md:px-12">
 				{
-					!household && <PhoneForm visitor={visitor} label="Find your invitation" action="#reply" />
-				}
-
-				{
-					household && saved && (
-						<div class="text-center">
-							<p class="font-display text-3xl font-light leading-snug text-deep md:text-4xl">
-								{saved.attending ? 'Thank you, we can’t wait to see you!' : 'Thank you for letting us know.'}
-							</p>
-							<p class="mt-4 text-ink/70">
-								{saved.attending
-									? `We’ve saved a seat for ${joinNames(saved.names)}.`
-									: 'We’ll miss you, and we’ll be thinking of you on the day.'}
-							</p>
-							<div class="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
-								{saved.attending && (
-									<a href={travel.href} class="bg-deep px-8 py-3 font-medium text-paper transition-colors hover:bg-deep-light">
-										Next: plan your trip &rarr;
-									</a>
-								)}
-								<a href={changeUrl.pathname + changeUrl.search} class="text-sm text-ink/60 underline underline-offset-2 hover:text-rose">
-									Change your reply
-								</a>
-							</div>
-						</div>
-					)
-				}
-
-				{
-					household && !saved && (
-						<form method="post" class="group space-y-8">
-							<div class="border-b border-ink/15 pb-8 text-center">
-								<p class="font-display text-3xl text-deep md:text-4xl">{household.greeting}</p>
-								<p class="mt-1 text-pretty text-ink/70">
-									{household.greeting.includes(' & ') ? 'are' : 'is'} warmly invited to the wedding of Meghna &amp; Akash
-								</p>
-								<p class="mt-3 font-display text-lg italic text-ink/70 md:text-xl">
-									<span class="block sm:inline">June 27, 2027</span>
-									<span class="hidden sm:inline"> &middot; </span>
-									<span class="block sm:inline">Kovalam, Kerala, India</span>
-								</p>
-								<a href={travel.href} class="mt-2 inline-block text-sm text-ink/60 underline underline-offset-2 hover:text-rose">
-									Planning the trip? See travel details &rarr;
-								</a>
-							</div>
-
-							<fieldset class="grid gap-3 sm:grid-cols-2">
-								<legend class="mb-4 text-pretty">
-									<span class="block font-medium text-deep">Will you be joining us for the wedding and lunch?</span>
-									<span class="mt-1 block text-sm text-ink/60">
-										{household.maxGuests === 1
-											? 'We’ve reserved a seat in your honour.'
-											: `We’ve reserved ${household.maxGuests} seats in your honour.`}
-										{current ? ' You can change your reply any time.' : ` Kindly reply by ${replyBy}.`}
-									</span>
-								</legend>
-								<label class="cursor-pointer border border-ink/25 px-4 py-4 text-center text-lg transition-colors has-checked:border-deep has-checked:bg-deep has-checked:text-paper">
-									<input type="radio" name="attending" value="yes" id="attending-yes" class="sr-only" checked={current?.attending === true} />
-									Joyfully accept
-								</label>
-								<label class="cursor-pointer border border-ink/25 px-4 py-4 text-center text-lg transition-colors has-checked:border-deep has-checked:bg-deep has-checked:text-paper">
-									<input type="radio" name="attending" value="no" class="sr-only" checked={current?.attending === false} />
-									Regretfully decline
-								</label>
-							</fieldset>
-
-							{household.maxGuests > 1 && (
-								<fieldset class="hidden group-has-[#attending-yes:checked]:block">
-									<legend class="mb-4 text-pretty">
-										<span class="block font-medium text-deep">Who will be coming?</span>
-										<span class="mt-1 block text-sm text-ink/60">
-											{household.guests.length > 1 ? 'Unselect anyone who can’t make it.' : 'Let us know who you’re bringing.'}
-										</span>
-									</legend>
-									<div class="space-y-3">
-										{household.guests.length > 1 &&
-											household.guests.map((name) => (
-												<label class="flex cursor-pointer items-center gap-3 border border-ink/25 px-4 py-3 text-lg transition-colors has-checked:border-deep">
-													<input type="checkbox" name="guest" value={name} checked={isComing(name)} class="size-5 accent-deep" />
-													{name}
-												</label>
-											))}
-										{household.guests.length === 1 && <input type="hidden" name="guest" value={household.guests[0]} />}
-										{Array.from({ length: plusOneSeats }, (_, i) => (
-											<div>
-												<label for={`plus-one-${i}`} class="sr-only">Guest {i + 1}</label>
-												<input
-													type="text"
-													id={`plus-one-${i}`}
-													name="plusOne"
-													maxlength="100"
-													autocomplete="off"
-													value={previousPlusOnes[i]}
-													placeholder={plusOneSeats === 1 ? 'Your guest’s full name' : `Guest ${i + 1}’s full name`}
-													class="w-full border border-ink/25 bg-paper px-4 py-3 text-lg placeholder:text-ink/30"
-												/>
-											</div>
-										))}
-									</div>
-								</fieldset>
-							)}
-
-							<div>
-								<label for="message" class="block font-medium text-deep">
-									Anything we should know? <span class="font-normal text-ink/50">(optional)</span>
-								</label>
-								<textarea
-									id="message"
-									name="message"
-									rows="3"
-									maxlength="2000"
-									placeholder="Dietary needs, a note for us…"
-									class="mt-2 w-full border border-ink/25 bg-paper px-4 py-3 placeholder:text-ink/30"
-								>{current?.message}</textarea>
-							</div>
-
-							{error && <p role="alert" class="text-rose">{error}</p>}
-
-							<div class="flex flex-wrap items-center justify-between gap-4">
-								<button type="submit" class="bg-deep px-8 py-3 font-medium text-paper transition-colors hover:bg-deep-light">
-									{current ? 'Update reply' : 'Send reply'}
-								</button>
-								<a href="?switch" class="text-sm text-ink/50 underline underline-offset-2 hover:text-rose">
-									Not you? Use a different number
-								</a>
-							</div>
-						</form>
+					!household ? (
+						<PhoneForm visitor={visitor} label="Find your invitation" action="#reply" />
+					) : saved ? (
+						<RsvpThanks rsvp={saved} changeHref={changeUrl.pathname + changeUrl.search} />
+					) : replyUnavailable && !draft ? (
+						<p role="alert" class="text-center text-rose">
+							Something went wrong loading your invitation. Please try again in a few minutes.
+						</p>
+					) : (
+						<RsvpForm household={household} draft={draft ?? draftFrom(current)} replied={Boolean(current)} error={error} />
 					)
 				}
 			</div>
