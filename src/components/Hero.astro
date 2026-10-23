@@ -1,51 +1,51 @@
 ---
 import { Image } from 'astro:assets'
-import heroPhoto from '../assets/2B3A8729.jpg'
+import heroPhoto from '../assets/2B3A8546.jpg'
 ---
 
-<section class="relative isolate min-h-svh overflow-hidden bg-deep-dark text-paper">
-	<Image
-		src={heroPhoto}
-		alt="Meghna and Akash smiling at each other in front of Buckingham Fountain at dusk"
-		widths={[640, 1280, 1920, 2560]}
-		sizes="100vw"
-		loading="eager"
-		fetchpriority="high"
-		class="absolute inset-0 -z-20 h-full w-full object-cover object-[43%_center]"
-	/>
-	<div class="absolute inset-0 -z-10 bg-linear-to-b from-black/70 via-transparent via-40% to-black/80"></div>
+<section class="bg-deep-dark text-paper">
+	<div class="@container relative isolate mx-auto min-h-svh w-full overflow-hidden md:h-svh md:w-[calc(100svh*2/3)] md:max-w-full">
+		<Image
+			src={heroPhoto}
+			alt="Meghna and Akash smiling at each other beneath autumn trees"
+			widths={[640, 960, 1280, 1920]}
+			sizes="(min-width: 768px) 67svh, 100vw"
+			loading="eager"
+			fetchpriority="high"
+			class="absolute inset-0 -z-20 h-full w-full object-cover object-[55%_center]"
+		/>
+		<div class="absolute inset-0 -z-10 bg-linear-to-b from-black/70 via-transparent via-40% to-black/80"></div>
 
-	<div
-		class="absolute inset-x-3 top-0 flex h-10 items-center justify-between text-[0.7rem] uppercase tracking-widest text-paper/90 md:inset-x-6 md:h-12"
-	>
-		<span>Special Edition</span>
-		<span>Vol. 01 &middot; Summer 2027</span>
-	</div>
-
-	<div class="pointer-events-none absolute inset-x-3 inset-y-10 border border-paper/25 md:inset-x-6 md:inset-y-12"></div>
-
-	<div class="relative flex min-h-svh flex-col px-10 py-16 md:px-14 md:py-20">
-		<div class="max-w-md md:max-w-none">
-			<p class="text-sm uppercase tracking-widest text-paper/90 md:text-lg">The wedding of</p>
-			<h1
-				class="mt-1 font-display text-[clamp(3rem,15vw,5.5rem)] font-light leading-[0.95] text-paper md:text-[clamp(4.75rem,9.5vw,8rem)]"
-			>
-				<span class="whitespace-nowrap">Meghna</span>{' '}<span class="whitespace-nowrap"
-					><span class="font-normal italic text-brass-light">&amp;</span> Akash</span
-				>
-			</h1>
+		<div
+			class="absolute inset-x-3 top-0 flex h-10 items-center justify-between text-[0.7rem] uppercase tracking-widest text-paper/90 md:inset-x-6 md:h-12"
+		>
+			<span>Special Edition</span>
+			<span>Vol. 01 &middot; Summer 2027</span>
 		</div>
 
-		<div class="mt-auto self-end pt-16 text-right">
-			<p class="font-display text-3xl md:text-6xl">June 27, 2027</p>
-			<p class="mt-2 text-xs font-medium uppercase tracking-widest text-paper/80">Kovalam, Kerala, India</p>
-		</div>
-	</div>
+		<div class="pointer-events-none absolute inset-x-3 inset-y-10 border border-paper/25 md:inset-x-6 md:inset-y-12"></div>
 
-	<a
-		href="#contents"
-		class="absolute bottom-0 left-1/2 flex h-10 -translate-x-1/2 items-center whitespace-nowrap text-[0.7rem] uppercase tracking-widest text-paper/90 hover:text-paper md:h-12"
-	>
-		Inside this issue &darr;
-	</a>
+		<div class="relative flex min-h-svh flex-col px-10 py-16 md:h-full md:min-h-0 md:px-14 md:py-20">
+			<div class="max-w-md md:max-w-none">
+				<p class="text-sm uppercase tracking-widest text-paper/90 md:text-lg">The wedding of</p>
+				<h1 class="mt-1 font-display text-[clamp(3rem,15cqw,7rem)] font-light leading-[0.95] text-paper">
+					<span class="whitespace-nowrap">Meghna</span>{' '}<span class="whitespace-nowrap"
+						><span class="font-normal italic text-brass-light">&amp;</span> Akash</span
+					>
+				</h1>
+			</div>
+
+			<div class="mt-auto self-end pt-16 text-right">
+				<p class="font-display text-3xl md:text-5xl">June 27, 2027</p>
+				<p class="mt-2 text-xs font-medium uppercase tracking-widest text-paper/80">Kovalam, Kerala, India</p>
+			</div>
+		</div>
+
+		<a
+			href="#contents"
+			class="absolute bottom-0 left-1/2 flex h-10 -translate-x-1/2 items-center whitespace-nowrap text-[0.7rem] uppercase tracking-widest text-paper/90 hover:text-paper md:h-12"
+		>
+			Inside this issue &darr;
+		</a>
+	</div>
 </section>
