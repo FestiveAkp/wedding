@@ -5,19 +5,21 @@ interface Props {
 	visitor: Visitor
 	label: string
 	/** Where to land after submitting, e.g. `#reply` to jump back to the form */
-	action?: string
+	hash?: string
 }
 
-const { visitor, label, action } = Astro.props
+const { visitor, label, hash = '' } = Astro.props
 ---
 
-<form method="get" action={action} class="mx-auto max-w-md text-left">
+<!-- Posted to the bare path so a lingering `?switch` doesn't forget the number straight away -->
+<form method="post" action={Astro.url.pathname + hash} class="mx-auto max-w-md text-left">
+	<input type="hidden" name="intent" value="find" />
 	<label for="phone" class="block font-display text-2xl text-deep md:text-3xl">{label}</label>
 	<p class="mt-2 text-sm text-ink/60">Use the number we message you on WhatsApp.</p>
 	<div class="mt-5 flex gap-3">
 		<input
 			id="phone"
-			name="p"
+			name="phone"
 			type="tel"
 			inputmode="tel"
 			autocomplete="tel"
@@ -30,9 +32,9 @@ const { visitor, label, action } = Astro.props
 		</button>
 	</div>
 	{
-		visitor.notFound && (
+		visitor.invalid && (
 			<p role="alert" class="mt-4 text-rose">
-				We couldn&rsquo;t find that number. Try the number we message you on, or reach out to us directly.
+				That doesn&rsquo;t look like a full phone number. Please check it and try again.
 			</p>
 		)
 	}

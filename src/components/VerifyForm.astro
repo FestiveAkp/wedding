@@ -1,0 +1,73 @@
+---
+interface Props {
+	/** Phone number, digits only */
+	phone: string
+	/** A code is on its way, so ask for it */
+	sent: boolean
+	error?: string
+	/** Where to land after submitting, e.g. `#reply` to jump back to the form */
+	hash?: string
+}
+
+// Shown before the number is confirmed, so nothing here may depend on whether it's on the guest list
+const { phone, sent, error, hash = '' } = Astro.props
+const ending = phone.slice(-4)
+---
+
+<div class="mx-auto max-w-md text-left">
+	<p class="font-display text-2xl text-deep md:text-3xl">Check your phone</p>
+	{
+		sent ? (
+			<form method="post" action={hash}>
+				<input type="hidden" name="intent" value="check" />
+				<label for="code" class="mt-2 block text-sm text-ink/60">
+					If your number ending in {ending} is on our guest list, we&rsquo;ve sent it a code by text message.
+					Enter it here to see your invitation.
+				</label>
+				<div class="mt-5 flex gap-3">
+					<input
+						id="code"
+						name="code"
+						type="text"
+						inputmode="numeric"
+						autocomplete="one-time-code"
+						pattern="[0-9 ]*"
+						maxlength="12"
+						required
+						autofocus
+						placeholder="123456"
+						class="min-w-0 flex-1 border border-ink/25 bg-paper px-4 py-3 text-lg tracking-widest placeholder:text-ink/30 focus:border-deep focus:outline-none"
+					/>
+					<button type="submit" class="bg-deep px-6 py-3 font-medium text-paper transition-colors hover:bg-deep-light">
+						Continue
+					</button>
+				</div>
+			</form>
+		) : (
+			<p class="mt-2 text-sm text-ink/60">
+				To keep your invitation private, we&rsquo;ll send a code by text message to your number ending in {ending}
+				if it&rsquo;s on our guest list.
+			</p>
+		)
+	}
+
+	{error && <p role="alert" class="mt-4 text-rose">{error}</p>}
+
+	<form method="post" action={hash} class="mt-5 flex flex-wrap items-center justify-between gap-4">
+		<input type="hidden" name="intent" value="send" />
+		{
+			sent ? (
+				<button type="submit" class="text-sm text-ink/60 underline underline-offset-2 hover:text-rose">
+					Didn&rsquo;t get it? Send a new code
+				</button>
+			) : (
+				<button type="submit" class="bg-deep px-6 py-3 font-medium text-paper transition-colors hover:bg-deep-light">
+					Send code
+				</button>
+			)
+		}
+		<a href="?switch" class="text-sm text-ink/50 underline underline-offset-2 hover:text-rose">
+			Use a different number
+		</a>
+	</form>
+</div>

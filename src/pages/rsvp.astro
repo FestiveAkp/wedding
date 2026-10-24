@@ -4,31 +4,36 @@ import PageOpener from '../components/PageOpener.astro'
 import PhoneForm from '../components/PhoneForm.astro'
 import RsvpForm from '../components/RsvpForm.astro'
 import RsvpThanks from '../components/RsvpThanks.astro'
+import VerifyForm from '../components/VerifyForm.astro'
 import { sections } from '../data/sections'
 import { latestRsvp, saveRsvp, type Rsvp } from '../lib/guests'
 import { draftFrom, parseReply, type Draft } from '../lib/reply'
-import { identifyVisitor } from '../lib/visitor'
+import { guestGate } from '../lib/verify'
 
 export const prerender = false
 
 const { no, title } = sections[4]
 
-const visitor = await identifyVisitor(Astro.url, Astro.cookies)
-// Only on GET, so a reply posted from an older tab still with ?p= isn't dropped
-if (visitor.redirect && Astro.request.method === 'GET') return Astro.redirect(visitor.redirect)
-const { household, phone } = visitor
+const gate = await guestGate(Astro)
+if (gate.redirect) return Astro.redirect(gate.redirect, 303)
+// `verify` is set exactly when the code box should be shown
+const { form, visitor, verify } = gate
 
+/** Why the reply couldn't be saved, shown above the form */
 let error: string | undefined
 /** The guest's submission, shown again so an error doesn't wipe what they typed */
 let draft: Draft | undefined
 
-if (Astro.request.method === 'POST' && household && phone) {
-	const reply = parseReply(await Astro.request.formData(), household)
+// Match the intent rather than any post: a stale code check (e.g. a double-tapped button)
+// can arrive after the guest is already verified, and mustn't be read as a reply
+if (form?.get('intent') === 'reply' && visitor.verified) {
+	const reply = parseReply(form, visitor.household)
 	error = reply.error
 	draft = reply.draft
 	if (reply.rsvp) {
 		try {
-			await saveRsvp(household, phone, reply.rsvp)
+			await saveRsvp(visitor.household, visitor.phone, reply.rsvp)
+			// `?saved` shows the thank-you note, and redirecting keeps a refresh from saving twice
 			const done = new URL(Astro.url)
 			done.searchParams.set('saved', reply.rsvp.attending ? 'yes' : 'no')
 			return Astro.redirect(done.pathname + done.search, 303)
@@ -39,11 +44,13 @@ if (Astro.request.method === 'POST' && household && phone) {
 	}
 }
 
+/** The household's most recent reply, used to prefill the form */
 let current: Rsvp | undefined
+/** Their earlier reply couldn't be loaded, so the form is withheld unless there's a draft to show */
 let replyUnavailable = false
-if (household) {
+if (visitor.verified) {
 	try {
-		current = await latestRsvp(household)
+		current = await latestRsvp(visitor.household)
 	} catch (e) {
 		// Never fall back to a blank form, which would invite overwriting their earlier reply
 		console.error('Could not load RSVP', e)
@@ -51,12 +58,14 @@ if (household) {
 	}
 }
 
-// Trust the reply we just saved even if reading it back fails
+// Thank the guest for the reply they just saved. If reading it back failed, `?saved` still
+// says whether they're coming, which is enough for the note.
 const savedReply = Astro.url.searchParams.get('saved')
 const saved =
 	savedReply === 'yes' || savedReply === 'no'
 		? (current ?? { attending: savedReply === 'yes', names: [], message: '' })
 		: undefined
+/** The same page without `?saved`, which brings the form back */
 const changeUrl = new URL(Astro.url)
 changeUrl.searchParams.delete('saved')
 ---
@@ -70,8 +79,10 @@ changeUrl.searchParams.delete('saved')
 		<div id="reply" class="mx-auto max-w-6xl px-6 py-10 md:px-10 md:py-20">
 			<div class="mx-auto max-w-2xl sm:bg-paper-dim sm:px-6 sm:py-12 md:px-12">
 				{
-					!household ? (
-						<PhoneForm visitor={visitor} label="Find your invitation" action="#reply" />
+					!visitor.phone ? (
+						<PhoneForm visitor={visitor} label="Find your invitation" hash="#reply" />
+					) : !visitor.verified ? (
+						<VerifyForm phone={visitor.phone} sent={verify?.codeSent ?? false} error={verify?.error} hash="#reply" />
 					) : saved ? (
 						<RsvpThanks rsvp={saved} changeHref={changeUrl.pathname + changeUrl.search} />
 					) : replyUnavailable && !draft ? (
@@ -79,7 +90,7 @@ changeUrl.searchParams.delete('saved')
 							Something went wrong loading your invitation. Please try again in a few minutes.
 						</p>
 					) : (
-						<RsvpForm household={household} draft={draft ?? draftFrom(current)} replied={Boolean(current)} error={error} />
+						<RsvpForm household={visitor.household} draft={draft ?? draftFrom(current)} replied={Boolean(current)} error={error} />
 					)
 				}
 			</div>

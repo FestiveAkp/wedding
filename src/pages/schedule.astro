@@ -3,16 +3,20 @@ import Page from '../layouts/Page.astro'
 import PageOpener from '../components/PageOpener.astro'
 import PhoneForm from '../components/PhoneForm.astro'
 import ScheduleEvent from '../components/ScheduleEvent.astro'
+import VerifyForm from '../components/VerifyForm.astro'
 import { sections } from '../data/sections'
 import { eventOrder, invitationEvents } from '../data/events'
-import { identifyVisitor } from '../lib/visitor'
+import { guestGate } from '../lib/verify'
 
 export const prerender = false
 
 const { no, title } = sections[1]
 
-const visitor = await identifyVisitor(Astro.url, Astro.cookies)
-if (visitor.redirect) return Astro.redirect(visitor.redirect)
+// Which events a household is invited to is private, so the extra events wait for a code
+const gate = await guestGate(Astro)
+if (gate.redirect) return Astro.redirect(gate.redirect, 303)
+const { visitor, verify } = gate
+/** Only set once the number is verified */
 const { household } = visitor
 const extraEvents = eventOrder
 	.filter((id) => household?.events.includes(id))
@@ -75,8 +79,17 @@ const extraEvents = eventOrder
 
 			{
 				!household && (
-					<div class="mb-14 bg-paper-dim px-6 py-12 md:mb-20 md:px-12">
-						<PhoneForm visitor={visitor} label="See your invitations" />
+					<div id="invitations" class="mb-14 bg-paper-dim px-6 py-12 md:mb-20 md:px-12">
+						{visitor.phone ? (
+							<VerifyForm
+								phone={visitor.phone}
+								sent={verify?.codeSent ?? false}
+								error={verify?.error}
+								hash="#invitations"
+							/>
+						) : (
+							<PhoneForm visitor={visitor} label="See your invitations" hash="#invitations" />
+						)}
 					</div>
 				)
 			}

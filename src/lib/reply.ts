@@ -22,10 +22,8 @@ export function draftFrom(rsvp?: Rsvp): Draft {
  */
 export function parseReply(form: FormData, household: Household): { rsvp?: Rsvp; error?: string; draft: Draft } {
 	const reply = form.get('attending');
-	const invited = form
-		.getAll('guest')
-		.map(String)
-		.filter((name) => household.guests.includes(name));
+	// A Set, so a name sent twice can't push the count past `maxGuests`
+	const invited = [...new Set(form.getAll('guest').map(String))].filter((name) => household.guests.includes(name));
 	const plusOnes = form
 		.getAll('plusOne')
 		.map((name) => cleanName(String(name)))

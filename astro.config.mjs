@@ -14,6 +14,11 @@ export default defineConfig({
       GOOGLE_SHEET_ID: envField.string({ context: 'server', access: 'secret' }),
       GOOGLE_SERVICE_ACCOUNT_EMAIL: envField.string({ context: 'server', access: 'secret' }),
       GOOGLE_PRIVATE_KEY: envField.string({ context: 'server', access: 'secret' }),
+      TWILIO_ACCOUNT_SID: envField.string({ context: 'server', access: 'secret' }),
+      TWILIO_AUTH_TOKEN: envField.string({ context: 'server', access: 'secret' }),
+      TWILIO_VERIFY_SERVICE_SID: envField.string({ context: 'server', access: 'secret' }),
+      // Signs the cookie that marks a guest's number as verified; any long random string
+      SESSION_SECRET: envField.string({ context: 'server', access: 'secret', min: 32 }),
     },
   },
   vite: {

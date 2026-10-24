@@ -21,6 +21,7 @@ const plusOneSeats = household.maxGuests - household.guests.length
 ---
 
 <form method="post" class="group space-y-8">
+	<input type="hidden" name="intent" value="reply" />
 	<div class="border-b border-ink/15 pb-8 text-center">
 		<p class="font-display text-3xl text-deep md:text-4xl">{household.greeting}</p>
 		<p class="mt-1 text-pretty text-ink/70">
