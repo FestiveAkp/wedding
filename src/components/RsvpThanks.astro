@@ -1,30 +1,32 @@
 ---
 import { sections } from '../data/sections'
-import { joinNames, type Rsvp } from '../lib/guests'
+import { joinNames } from '../lib/guests'
 
 interface Props {
-	rsvp: Rsvp
+	attending: boolean
+	/** Who's coming, when known */
+	names?: string[]
 	/** Back to the form, to change the reply */
 	changeHref: string
 }
 
-const { rsvp, changeHref } = Astro.props
+const { attending, names = [], changeHref } = Astro.props
 const travel = sections[2]
 ---
 
 <div class="text-center">
 	<p class="font-display text-3xl font-light leading-snug text-deep md:text-4xl">
-		{rsvp.attending ? 'Thank you, we can’t wait to see you!' : 'Thank you for letting us know.'}
+		{attending ? 'Thank you, we can’t wait to see you!' : 'Thank you for letting us know.'}
 	</p>
 	<p class="mt-4 text-ink/70">
-		{!rsvp.attending
+		{!attending
 			? 'We’ll miss you, and we’ll be thinking of you on the day.'
-			: rsvp.names.length > 0
-				? `We’ve saved a seat for ${joinNames(rsvp.names)}.`
+			: names.length > 0
+				? `We’ve saved a seat for ${joinNames(names)}.`
 				: 'Your reply is saved.'}
 	</p>
 	<div class="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
-		{rsvp.attending && (
+		{attending && (
 			<a href={travel.href} class="bg-deep px-8 py-3 font-medium text-paper transition-colors hover:bg-deep-light">
 				Next: plan your trip &rarr;
 			</a>

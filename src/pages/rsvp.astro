@@ -6,43 +6,20 @@ import RsvpForm from '../components/RsvpForm.astro'
 import RsvpThanks from '../components/RsvpThanks.astro'
 import VerifyForm from '../components/VerifyForm.astro'
 import { sections } from '../data/sections'
-import { latestRsvp, saveRsvp, type Rsvp } from '../lib/guests'
-import { draftFrom, parseReply, type Draft } from '../lib/reply'
+import { latestRsvp, type Rsvp } from '../lib/guests'
+import { draftFrom, handleReply, type ReplyResult } from '../lib/reply'
 import { guestGate } from '../lib/verify'
 
 export const prerender = false
 
 const { no, title } = sections[4]
 
-const gate = await guestGate(Astro)
-if (gate.redirect) return Astro.redirect(gate.redirect, 303)
 // `verify` is set exactly when the code box should be shown
-const { form, visitor, verify } = gate
+const {redirect, form, visitor, verify} = await guestGate(Astro)
+if (redirect) return Astro.redirect(redirect, 303)
 
-/** Why the reply couldn't be saved, shown above the form */
-let error: string | undefined
-/** The guest's submission, shown again so an error doesn't wipe what they typed */
-let draft: Draft | undefined
-
-// Match the intent rather than any post: a stale code check (e.g. a double-tapped button)
-// can arrive after the guest is already verified, and mustn't be read as a reply
-if (form?.get('intent') === 'reply' && visitor.verified) {
-	const reply = parseReply(form, visitor.household)
-	error = reply.error
-	draft = reply.draft
-	if (reply.rsvp) {
-		try {
-			await saveRsvp(visitor.household, visitor.phone, reply.rsvp)
-			// `?saved` shows the thank-you note, and redirecting keeps a refresh from saving twice
-			const done = new URL(Astro.url)
-			done.searchParams.set('saved', reply.rsvp.attending ? 'yes' : 'no')
-			return Astro.redirect(done.pathname + done.search, 303)
-		} catch (e) {
-			console.error('Could not save RSVP', e)
-			error = 'Something went wrong saving your reply. Please try again in a few minutes.'
-		}
-	}
-}
+const reply: ReplyResult = visitor.verified ? await handleReply(form, visitor.household, visitor.phone, Astro.url) : {}
+if (reply.redirect) return Astro.redirect(reply.redirect, 303)
 
 /** The household's most recent reply, used to prefill the form */
 let current: Rsvp | undefined
@@ -63,7 +40,7 @@ if (visitor.verified) {
 const savedReply = Astro.url.searchParams.get('saved')
 const saved =
 	savedReply === 'yes' || savedReply === 'no'
-		? (current ?? { attending: savedReply === 'yes', names: [], message: '' })
+		? { attending: current?.attending ?? savedReply === 'yes', names: current?.names }
 		: undefined
 /** The same page without `?saved`, which brings the form back */
 const changeUrl = new URL(Astro.url)
@@ -84,13 +61,13 @@ changeUrl.searchParams.delete('saved')
 					) : !visitor.verified ? (
 						<VerifyForm phone={visitor.phone} sent={verify?.codeSent ?? false} error={verify?.error} hash="#reply" />
 					) : saved ? (
-						<RsvpThanks rsvp={saved} changeHref={changeUrl.pathname + changeUrl.search} />
-					) : replyUnavailable && !draft ? (
+						<RsvpThanks {...saved} changeHref={changeUrl.pathname + changeUrl.search} />
+					) : replyUnavailable && !reply.draft ? (
 						<p role="alert" class="text-center text-rose">
 							Something went wrong loading your invitation. Please try again in a few minutes.
 						</p>
 					) : (
-						<RsvpForm household={visitor.household} draft={draft ?? draftFrom(current)} replied={Boolean(current)} error={error} />
+						<RsvpForm household={visitor.household} draft={reply.draft ?? draftFrom(current)} replied={Boolean(current) || replyUnavailable} error={reply.error} />
 					)
 				}
 			</div>
