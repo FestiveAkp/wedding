@@ -14,6 +14,49 @@
   --color-brass-light: #d7ac53;
   --color-rose: #8f3049;
   --color-rose-light: #b8536b;
+
+  --ease-cover: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Hero cover entrance. Fill-mode `both` holds each element in its start
+     state until its delay elapses. */
+  --animate-cover-settle: cover-settle 1.6s var(--ease-cover) both;
+  --animate-cover-lift: cover-lift 0.8s ease-out both;
+  --animate-cover-rise: cover-rise 0.9s var(--ease-cover) both;
+  --animate-cover-fade: cover-fade 0.8s ease-out both;
+
+  @keyframes cover-settle {
+    from {
+      transform: scale(1.05);
+    }
+  }
+
+  @keyframes cover-lift {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  /* Slides up from behind its own baseline: the clip-path shrinks in step with
+     the translate, so the visible area stays fixed where the word ends up. */
+  @keyframes cover-rise {
+    from {
+      transform: translateY(100%);
+      clip-path: inset(-15% -15% 100% -15%);
+    }
+    to {
+      transform: translateY(0);
+      clip-path: inset(-15% -15% -25% -15%);
+    }
+  }
+
+  @keyframes cover-fade {
+    from {
+      opacity: 0;
+    }
+  }
 }
 
 @layer base {

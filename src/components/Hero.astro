@@ -12,38 +12,41 @@ import heroPhoto from '../assets/2B3A8546.jpg'
 			sizes="(min-width: 768px) 67svh, 100vw"
 			loading="eager"
 			fetchpriority="high"
-			class="absolute inset-0 -z-20 h-full w-full object-cover object-[55%_center]"
+			class="absolute inset-0 -z-20 h-full w-full object-cover object-[55%_center] motion-safe:animate-cover-settle"
 		/>
 		<div class="absolute inset-0 -z-10 bg-linear-to-b from-black/70 via-transparent via-40% to-black/80"></div>
+		<!-- Fades out over the photo on load; the image itself stays visible so LCP isn't delayed -->
+		<div class="absolute inset-0 -z-10 bg-deep-dark opacity-0 motion-safe:animate-cover-lift"></div>
 
 		<div
 			class="absolute inset-x-3 top-0 flex h-10 items-center justify-between text-[0.7rem] uppercase tracking-widest text-paper/90 md:inset-x-6 md:h-12"
 		>
-			<span>Special Edition</span>
-			<span>Vol. 01 &middot; Summer 2027</span>
+			<span class="motion-safe:animate-cover-rise motion-safe:[animation-delay:100ms]">Special Edition</span>
+			<span class="motion-safe:animate-cover-rise motion-safe:[animation-delay:100ms]">Vol. 01 &middot; Summer 2027</span>
 		</div>
 
-		<div class="pointer-events-none absolute inset-x-3 inset-y-10 border border-paper/25 md:inset-x-6 md:inset-y-12"></div>
+		<div class="pointer-events-none absolute inset-x-3 inset-y-10 border border-paper/25 motion-safe:animate-cover-fade md:inset-x-6 md:inset-y-12"></div>
 
 		<div class="relative flex min-h-svh flex-col px-10 py-16 md:h-full md:min-h-0 md:px-14 md:py-20">
 			<div class="max-w-md md:max-w-none">
-				<p class="text-sm uppercase tracking-widest text-paper/90 md:text-lg">The wedding of</p>
+				<p class="text-sm uppercase tracking-widest text-paper/90 motion-safe:animate-cover-rise motion-safe:[animation-delay:200ms] md:text-lg">The wedding of</p>
 				<h1 class="mt-1 font-display text-[clamp(3rem,15cqw,7rem)] font-light leading-[0.95] text-paper">
-					<span class="whitespace-nowrap">Meghna</span>{' '}<span class="whitespace-nowrap"
+					<span class="inline-block whitespace-nowrap motion-safe:animate-cover-rise motion-safe:[animation-delay:300ms]">Meghna</span>{' '}<span
+						class="inline-block whitespace-nowrap motion-safe:animate-cover-rise motion-safe:[animation-delay:420ms]"
 						><span class="font-normal italic text-brass-light">&amp;</span> Akash</span
 					>
 				</h1>
 			</div>
 
 			<div class="mt-auto self-end pt-16 text-right">
-				<p class="font-display text-3xl md:text-5xl">June 27, 2027</p>
-				<p class="mt-2 text-xs font-medium uppercase tracking-widest text-paper/80">Kovalam, Kerala, India</p>
+				<p class="font-display text-3xl motion-safe:animate-cover-rise motion-safe:[animation-delay:600ms] md:text-5xl">June 27, 2027</p>
+				<p class="mt-2 text-xs font-medium uppercase tracking-widest text-paper/80 motion-safe:animate-cover-rise motion-safe:[animation-delay:680ms]">Kovalam, Kerala, India</p>
 			</div>
 		</div>
 
 		<a
 			href="#contents"
-			class="absolute bottom-0 left-1/2 flex h-10 -translate-x-1/2 items-center whitespace-nowrap text-[0.7rem] uppercase tracking-widest text-paper/90 hover:text-paper md:h-12"
+			class="absolute bottom-0 left-1/2 flex h-10 -translate-x-1/2 items-center whitespace-nowrap text-[0.7rem] uppercase tracking-widest text-paper/90 hover:text-paper motion-safe:animate-cover-rise motion-safe:[animation-delay:760ms] md:h-12"
 		>
 			Inside this issue &darr;
 		</a>
