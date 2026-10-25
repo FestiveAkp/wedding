@@ -9,7 +9,7 @@ const { next } = Astro.props
 const target = next ?? { href: '/', no: '00', title: 'Back to the cover' }
 ---
 
-<nav aria-label="Next page" class="mx-auto max-w-6xl px-6 md:px-10">
+<nav aria-label="Next page" class="mx-auto w-full max-w-6xl px-6 md:px-10">
 	<a
 		href={target.href}
 		class:list={[
