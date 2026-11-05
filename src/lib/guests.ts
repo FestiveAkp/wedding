@@ -147,3 +147,20 @@ export async function saveRsvp(household: Household, phone: string, rsvp: Rsvp) 
 	];
 	await appendRow(RSVP_RANGE, row);
 }
+
+const LOGIN_RANGE = `'Logins'!A:F`;
+
+/** How a guest got in: a texted code, or a number already verified on this device */
+export type LoginMethod = 'Code' | 'Already verified';
+
+/** Records a guest signing in. Never throws, so a logging hiccup can't keep anyone out. */
+export async function logLogin(phone: string, method: LoginMethod, page: string) {
+	// Local dev sign-ins aren't real guests, so keep them out of the sheet
+	if (import.meta.env.DEV) return;
+	try {
+		const household = (await findHousehold(phone))?.household;
+		await appendRow(LOGIN_RANGE, [new Date().toISOString(), household?.id ?? '', household ? joinNames(household.guests) : '', phone, method, page]);
+	} catch (e) {
+		console.error('Could not log login', e);
+	}
+}

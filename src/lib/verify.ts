@@ -1,4 +1,5 @@
 import type { AstroCookies, AstroGlobal } from 'astro';
+import { logLogin } from './guests';
 import { checkCode, sendCode } from './twilio';
 import { codeSentTo, forgetCodeSent, identifyVisitor, rememberCodeSent, rememberVerified, type Visitor } from './visitor';
 
@@ -32,7 +33,10 @@ export async function guestGate({ request, url, cookies }: Pick<AstroGlobal, 're
 
 	// Already verified on an earlier visit, so there's no code to send. The number is in the
 	// cookie now, so reload as a GET to keep a refresh from resubmitting the form.
-	if (entered && visitor.verified) return { redirect: url.pathname, form, visitor };
+	if (entered && visitor.verified) {
+		await logLogin(visitor.phone, 'Already verified', url.pathname);
+		return { redirect: url.pathname, form, visitor };
+	}
 	if (!visitor.phone || visitor.verified) return { form, visitor };
 
 	// In local dev, an invited number counts as verified without a text. `import.meta.env.DEV`
@@ -45,14 +49,16 @@ export async function guestGate({ request, url, cookies }: Pick<AstroGlobal, 're
 	// Someone who has entered a number but not a code yet can only find their invitation, ask
 	// for a code or check one; any other post is ignored
 	const verify = await verifyStep(form, visitor.phone, visitor.invited, cookies);
-	if (verify === 'redirect') return { redirect: url.pathname + url.search, form, visitor };
+	if (verify === 'verified') await logLogin(visitor.phone, 'Code', url.pathname);
+	if (verify === 'redirect' || verify === 'verified') return { redirect: url.pathname + url.search, form, visitor };
 	return { form, visitor, verify };
 }
 
 /**
  * Handles the posts accepted from a guest who hasn't confirmed their number yet: finding their
  * invitation, asking for a code and checking it. Returns 'redirect' when the post worked and
- * the page should reload, so a refresh doesn't resubmit the form.
+ * the page should reload, so a refresh doesn't resubmit the form, or 'verified' when it was a
+ * correct code (which also reloads).
  *
  * A number that isn't `invited` goes through the same steps, but no code is sent and every
  * code is wrong, so the page never says whether a number is on the guest list.
@@ -62,7 +68,7 @@ export async function verifyStep(
 	phone: string,
 	invited: boolean,
 	cookies: AstroCookies,
-): Promise<'redirect' | VerifyState> {
+): Promise<'redirect' | 'verified' | VerifyState> {
 	const codeSent = codeSentTo(phone, cookies);
 	const intent = form?.get('intent');
 
@@ -91,7 +97,7 @@ export async function verifyStep(
 			const result = code && invited ? await checkCode(phone, code) : 'wrong';
 			if (result === 'approved') {
 				rememberVerified(phone, cookies);
-				return 'redirect';
+				return 'verified';
 			}
 			if (result === 'wrong') return { codeSent, error: 'That code doesn’t match. Please check it and try again.' };
 			// Forget the code too, so a refresh doesn't bring back a code box that can't succeed
