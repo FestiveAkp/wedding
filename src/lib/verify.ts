@@ -35,6 +35,13 @@ export async function guestGate({ request, url, cookies }: Pick<AstroGlobal, 're
 	if (entered && visitor.verified) return { redirect: url.pathname, form, visitor };
 	if (!visitor.phone || visitor.verified) return { form, visitor };
 
+	// In local dev, an invited number counts as verified without a text. `import.meta.env.DEV`
+	// is replaced at build time, so this is dropped from production builds entirely.
+	if (import.meta.env.DEV && visitor.invited) {
+		rememberVerified(visitor.phone, cookies);
+		return { redirect: url.pathname + url.search, form, visitor };
+	}
+
 	// Someone who has entered a number but not a code yet can only find their invitation, ask
 	// for a code or check one; any other post is ignored
 	const verify = await verifyStep(form, visitor.phone, visitor.invited, cookies);
