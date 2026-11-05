@@ -1,6 +1,6 @@
 ---
 import { sections } from '../data/sections'
-import type { Household } from '../lib/guests'
+import { joinNames, type Household } from '../lib/guests'
 import type { Draft } from '../lib/reply'
 
 interface Props {
@@ -18,14 +18,16 @@ const replyBy = 'April 1, 2027'
 const isComing = (name: string) => !draft.names || draft.names.includes(name)
 const plusOnes = (draft.names ?? []).filter((name) => !household.guests.includes(name))
 const plusOneSeats = household.maxGuests - household.guests.length
+/** Invitations are addressed formally, by full name */
+const invitees = joinNames(household.guests)
 ---
 
 <form method="post" class="group space-y-8">
 	<input type="hidden" name="intent" value="reply" />
 	<div class="border-b border-ink/15 pb-8 text-center">
-		<p class="font-display text-3xl text-deep md:text-4xl">{household.greeting}</p>
+		<p class="font-display text-3xl text-deep md:text-4xl">{invitees}</p>
 		<p class="mt-1 text-pretty text-ink/70">
-			{household.greeting.includes(' & ') ? 'are' : 'is'} warmly invited to the wedding of Meghna &amp; Akash
+			{household.guests.length > 1 ? 'are' : 'is'} warmly invited to the wedding of Meghna &amp; Akash
 		</p>
 		<p class="mt-3 font-display text-lg italic text-ink/70 md:text-xl">
 			<span class="block sm:inline">June 27, 2027</span>
