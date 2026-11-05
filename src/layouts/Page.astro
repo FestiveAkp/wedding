@@ -1,14 +1,21 @@
 ---
-import Layout from './Layout.astro'
-import SiteHeader from '../components/SiteHeader.astro'
-import NextPage from '../components/NextPage.astro'
-import SiteFooter from '../components/SiteFooter.astro'
-import { findSection } from '../data/sections'
+import Layout from '@/layouts/Layout.astro'
+import SiteHeader from '@/components/SiteHeader.astro'
+import NextPage from '@/components/NextPage.astro'
+import SiteFooter from '@/components/SiteFooter.astro'
+import { findSection } from '@/data/sections'
+
+interface Props {
+	/** For pages outside the numbered sections, which can't be looked up by path */
+	title?: string
+	description?: string
+}
 
 const { section, next } = findSection(Astro.url.pathname)
+const { title = section?.title, description = section?.dek } = Astro.props
 ---
 
-<Layout title={`${section.title} · Meghna & Akash`} description={section.dek}>
+<Layout title={`${title} · Meghna & Akash`} description={description}>
 	<SiteHeader />
 	<main class="flex-1">
 		<slot />

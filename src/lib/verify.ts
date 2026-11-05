@@ -1,7 +1,7 @@
 import type { AstroCookies, AstroGlobal } from 'astro';
-import { logLogin } from './guests';
-import { checkCode, sendCode } from './twilio';
-import { codeSentTo, forgetCodeSent, identifyVisitor, rememberCodeSent, rememberVerified, type Visitor } from './visitor';
+import { logLogin } from '@/lib/guests';
+import { checkCode, sendCode } from '@/lib/twilio';
+import { codeSentTo, forgetCodeSent, identifyVisitor, rememberCodeSent, rememberVerified, type Visitor } from '@/lib/visitor';
 
 const SERVER_ERROR = 'Something went wrong on our end. Please try again in a few minutes.';
 

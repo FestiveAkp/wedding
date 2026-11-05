@@ -1,5 +1,5 @@
 ---
-import { sections } from '../data/sections'
+import { sections } from '@/data/sections'
 
 const current = Astro.url.pathname.replace(/\/+$/, '')
 const isCurrent = (href: string) => href.replace(/\/+$/, '') === current

@@ -1,5 +1,5 @@
-import { appendRow, getValues } from './sheets';
-import { phoneCandidates, sheetPhone } from './phone';
+import { appendRow, getValues } from '@/lib/sheets';
+import { phoneCandidates, sheetPhone } from '@/lib/phone';
 
 export type EventId = 'welcome' | 'mehndi';
 

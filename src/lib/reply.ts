@@ -1,4 +1,4 @@
-import { cleanName, saveRsvp, type Household, type Rsvp } from './guests';
+import { cleanName, saveRsvp, type Household, type Rsvp } from '@/lib/guests';
 
 /** What the reply form shows; `names` is unset when everyone invited should start selected */
 export interface Draft {

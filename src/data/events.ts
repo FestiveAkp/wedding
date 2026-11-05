@@ -1,4 +1,4 @@
-import type { EventId } from '../lib/guests'
+import type { EventId } from '@/lib/guests'
 
 export interface WeddingEvent {
 	title: string

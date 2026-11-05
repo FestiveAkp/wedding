@@ -1,8 +1,8 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import type { AstroCookies } from 'astro';
 import { SESSION_SECRET } from 'astro:env/server';
-import { findHousehold, type Household } from './guests';
-import { phoneCandidates } from './phone';
+import { findHousehold, type Household } from '@/lib/guests';
+import { phoneCandidates } from '@/lib/phone';
 
 const COOKIE = 'guest';
 /** Signed proof the guest entered a code sent to their number */

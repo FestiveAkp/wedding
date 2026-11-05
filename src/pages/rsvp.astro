@@ -1,14 +1,14 @@
 ---
-import Page from '../layouts/Page.astro'
-import PageOpener from '../components/PageOpener.astro'
-import PhoneForm from '../components/PhoneForm.astro'
-import RsvpForm from '../components/RsvpForm.astro'
-import RsvpThanks from '../components/RsvpThanks.astro'
-import VerifyForm from '../components/VerifyForm.astro'
-import { sections } from '../data/sections'
-import { latestRsvp, type Rsvp } from '../lib/guests'
-import { draftFrom, handleReply, type ReplyResult } from '../lib/reply'
-import { guestGate } from '../lib/verify'
+import Page from '@/layouts/Page.astro'
+import PageOpener from '@/components/PageOpener.astro'
+import PhoneForm from '@/components/PhoneForm.astro'
+import RsvpForm from '@/components/RsvpForm.astro'
+import RsvpThanks from '@/components/RsvpThanks.astro'
+import VerifyForm from '@/components/VerifyForm.astro'
+import { sections } from '@/data/sections'
+import { latestRsvp, type Rsvp } from '@/lib/guests'
+import { draftFrom, handleReply, type ReplyResult } from '@/lib/reply'
+import { guestGate } from '@/lib/verify'
 
 export const prerender = false
 
