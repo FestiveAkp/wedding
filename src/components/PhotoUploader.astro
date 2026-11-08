@@ -1,0 +1,180 @@
+---
+// Uppy sends each file straight from the browser to R2 in one request (see /api/photos/upload).
+// Files that finished are remembered, so picking a batch again after closing the page only
+// uploads the ones that didn't.
+---
+
+<div class="mx-auto max-w-xl text-left" data-uploader>
+	<p class="font-display text-2xl text-deep md:text-3xl">Share your photos</p>
+
+	<label
+		data-drop
+		class="mt-6 flex cursor-pointer flex-col items-center gap-2 border border-dashed border-ink/30 bg-paper px-6 py-10 text-center transition-colors hover:border-deep data-[over]:border-deep data-[over]:bg-paper-dim"
+	>
+		<input type="file" multiple accept="image/*,video/*" class="sr-only" data-input />
+		<span class="bg-deep px-6 py-3 font-medium text-paper">Choose photos &amp; videos</span>
+		<span class="hidden text-sm text-ink/50 md:block">or drag them here</span>
+	</label>
+
+	<p data-summary aria-live="polite" class="mt-6 text-sm text-ink/70"></p>
+	<ul data-list class="mt-3 divide-y divide-ink/10"></ul>
+
+	<template data-item>
+		<li class="py-3">
+			<div class="flex items-baseline justify-between gap-4 text-sm">
+				<span data-name class="min-w-0 truncate"></span>
+				<span data-status class="shrink-0 text-ink/60"></span>
+			</div>
+			<div class="mt-2 h-1 bg-ink/10">
+				<div data-bar class="h-full w-0 bg-brass transition-[width]"></div>
+			</div>
+			<button type="button" data-retry hidden class="mt-2 text-sm text-rose underline underline-offset-2">
+				Try again
+			</button>
+		</li>
+	</template>
+</div>
+
+<script>
+	import Uppy from '@uppy/core'
+	import AwsS3 from '@uppy/aws-s3'
+
+	const API = '/api/photos/upload'
+	/** IDs of files already uploaded from this browser. Uppy's IDs come from name, size and date. */
+	const DONE_KEY = 'media-uploaded'
+
+	/** An error whose message is meant for the guest */
+	class GuestError extends Error {
+		name = 'GuestError'
+	}
+
+	const root = document.querySelector<HTMLElement>('[data-uploader]')!
+	const input = root.querySelector<HTMLInputElement>('[data-input]')!
+	const drop = root.querySelector<HTMLElement>('[data-drop]')!
+	const list = root.querySelector<HTMLUListElement>('[data-list]')!
+	const summary = root.querySelector<HTMLElement>('[data-summary]')!
+	const template = root.querySelector<HTMLTemplateElement>('[data-item]')!
+
+	const uploaded = new Set<string>(JSON.parse(localStorage.getItem(DONE_KEY) ?? '[]'))
+	/** Files picked again after they'd already been uploaded, shown but not sent */
+	const skipped: string[] = []
+	/** Messages for the guest, by file ID, when the server turned a file down */
+	const messages = new Map<string, string>()
+
+	const uppy: Uppy = new Uppy({
+		autoProceed: true,
+		onBeforeFileAdded: (file) => {
+			if (!uploaded.has(file.id)) return true
+			skipped.push(file.name ?? 'file')
+			render()
+			return false
+		},
+	})
+		.use(AwsS3, {
+			limit: 3,
+			shouldUseMultipart: false,
+			// Only a placeholder; the server picks the real key
+			generateObjectKey: (file) => file.id,
+			async signRequest(request) {
+				const file = uppy.getFile(request.key)
+				const res = await fetch(API, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ name: file?.name, type: file?.type, size: file?.size }),
+				})
+				const data = await res.json().catch(() => ({}))
+				if (res.status >= 400 && res.status < 500) throw new GuestError(data.error ?? 'Couldn’t upload')
+				if (!res.ok) throw new Error(data.error ?? `Server error ${res.status}`)
+				return data
+			},
+		})
+
+	// ---- Display
+
+	const rows = new Map<string, HTMLLIElement>()
+	function row(id: string, name: string) {
+		let el = rows.get(id)
+		if (!el) {
+			el = template.content.firstElementChild!.cloneNode(true) as HTMLLIElement
+			el.querySelector('[data-name]')!.textContent = name
+			el.querySelector('[data-retry]')!.addEventListener('click', () => uppy.retryUpload(id))
+			rows.set(id, el)
+			list.append(el)
+		}
+		return el
+	}
+
+	function show(el: HTMLElement, status: string, fraction: number, state: 'ok' | 'failed' = 'ok') {
+		el.querySelector('[data-status]')!.textContent = status
+		const bar = el.querySelector<HTMLElement>('[data-bar]')!
+		bar.style.width = `${Math.round(fraction * 100)}%`
+		bar.classList.toggle('bg-rose', state === 'failed')
+		el.querySelector<HTMLButtonElement>('[data-retry]')!.hidden = state !== 'failed'
+	}
+
+	function render() {
+		const files = uppy.getFiles()
+		for (const file of files) {
+			const el = row(file.id, file.name ?? 'file')
+			const { progress } = file
+			const fraction = (progress.percentage ?? 0) / 100
+			if (file.error) show(el, messages.get(file.id) ?? 'Couldn’t upload', fraction, 'failed')
+			else if (progress.uploadComplete) show(el, 'Done', 1)
+			else if (progress.uploadStarted) show(el, `${Math.floor(fraction * 100)}%`, fraction)
+			else show(el, 'Waiting', 0)
+		}
+		skipped.forEach((name, i) => show(row(`skipped-${i}`, name), 'Already uploaded', 1))
+
+		const done = files.filter((f) => f.progress.uploadComplete).length + skipped.length
+		const stuck = files.filter((f) => f.error).length
+		const busy = files.length + skipped.length - done - stuck
+		summary.textContent = !rows.size
+			? ''
+			: busy
+				? `${done} of ${rows.size - stuck} uploaded…`
+				: stuck
+					? `${done} uploaded, ${stuck} didn’t make it. Tap “Try again” on those below.`
+					: `All ${done} uploaded. Thank you!`
+	}
+
+	uppy.on('state-update', render)
+	uppy.on('upload-error', (file, error) => {
+		if (file && error.name === 'GuestError') messages.set(file.id, error.message)
+	})
+	uppy.on('upload-success', (file) => {
+		if (!file) return
+		uploaded.add(file.id)
+		try {
+			localStorage.setItem(DONE_KEY, JSON.stringify([...uploaded]))
+		} catch {
+			// Storage full or blocked; it only means a file picked again would upload twice
+		}
+	})
+
+	// ---- Picking files
+
+	const add = (files: FileList) =>
+		uppy.addFiles([...files].map((data) => ({ name: data.name, type: data.type, data, source: 'local' })))
+
+	input.addEventListener('change', () => {
+		if (input.files) add(input.files)
+		// Lets the same files be picked again, e.g. after closing the page
+		input.value = ''
+	})
+
+	drop.addEventListener('dragover', (e) => {
+		e.preventDefault()
+		drop.dataset.over = ''
+	})
+	drop.addEventListener('dragleave', () => delete drop.dataset.over)
+	drop.addEventListener('drop', (e) => {
+		e.preventDefault()
+		delete drop.dataset.over
+		if (e.dataTransfer?.files.length) add(e.dataTransfer.files)
+	})
+
+	// Leaving the page stops uploads in progress, so check first
+	addEventListener('beforeunload', (e) => {
+		if (uppy.getFiles().some((f) => !f.progress.uploadComplete && !f.error)) e.preventDefault()
+	})
+</script>

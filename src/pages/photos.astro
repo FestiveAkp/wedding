@@ -1,0 +1,35 @@
+---
+import Page from '@/layouts/Page.astro'
+import PageOpener from '@/components/PageOpener.astro'
+import PhoneForm from '@/components/PhoneForm.astro'
+import PhotoUploader from '@/components/PhotoUploader.astro'
+import VerifyForm from '@/components/VerifyForm.astro'
+import { guestGate } from '@/lib/verify'
+
+export const prerender = false
+
+// Not one of the numbered sections, so it stays out of the menu until the photos start coming in.
+// Guests confirm their number the same way as on the RSVP page, so uploads are tied to a household.
+const { redirect, visitor, verify } = await guestGate(Astro)
+if (redirect) return Astro.redirect(redirect, 303)
+---
+
+<Page title="Photos" description="Share the photos and videos you took with us.">
+	<article>
+		<PageOpener>Photos</PageOpener>
+
+		<div id="upload" class="mx-auto max-w-6xl px-6 py-10 md:px-10 md:py-20">
+			<div class="mx-auto max-w-2xl sm:bg-paper-dim sm:px-6 sm:py-12 md:px-12">
+				{
+					!visitor.phone ? (
+						<PhoneForm visitor={visitor} label="Sign in to share your photos" hash="#upload" />
+					) : !visitor.verified ? (
+						<VerifyForm phone={visitor.phone} sent={verify?.codeSent ?? false} error={verify?.error} hash="#upload" />
+					) : (
+						<PhotoUploader />
+					)
+				}
+			</div>
+		</div>
+	</article>
+</Page>

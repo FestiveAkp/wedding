@@ -16,7 +16,10 @@
     "@astrojs/netlify": "^8.2.10",
     "@netlify/blobs": "^11.1.6",
     "@tailwindcss/vite": "^4.3.3",
+    "@uppy/aws-s3": "^6.3.1",
+    "@uppy/core": "^6.3.1",
     "astro": "^7.4.2",
+    "aws4fetch": "^1.0.20",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3"
   },

@@ -19,6 +19,12 @@ export default defineConfig({
       TWILIO_VERIFY_SERVICE_SID: envField.string({ context: 'server', access: 'secret' }),
       // Signs the cookie that marks a guest's number as verified; any long random string
       SESSION_SECRET: envField.string({ context: 'server', access: 'secret', min: 32 }),
+      // Cloudflare R2 bucket that guests' photos upload to, with an R2 API token's S3 credentials.
+      // Optional so the rest of the site still runs without them; only uploads fail.
+      R2_ACCOUNT_ID: envField.string({ context: 'server', access: 'secret', optional: true }),
+      R2_ACCESS_KEY_ID: envField.string({ context: 'server', access: 'secret', optional: true }),
+      R2_SECRET_ACCESS_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
+      R2_BUCKET: envField.string({ context: 'server', access: 'public', default: 'wedding-media' }),
     },
   },
   vite: {
